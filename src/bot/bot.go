@@ -1,7 +1,6 @@
 package bd_bot
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -53,8 +52,7 @@ func (this *BuisdevBot) Listen() {
 
 	for update := range this.bot.GetUpdatesChan(u) {
 		if update.Message != nil {
-			fmt.Printf("[%s] text - %s, command - %s.\n", update.Message.From.UserName, update.Message.Text, update.Message.Command())
-
+			// fmt.Printf("[%s] text - %s, command - %s.\n", update.Message.From.UserName, update.Message.Text, update.Message.Command())
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
 			switch update.Message.Text {
@@ -76,7 +74,7 @@ func (this *BuisdevBot) Listen() {
 
 			this.bot.Send(msg)
 		} else if update.CallbackQuery != nil && update.CallbackQuery.Data != this.lastCommand {
-			fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackQuery.Data)
+			// fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackQuery.Data)
 			this.lastCommand = update.CallbackQuery.Data
 
 			nextPage := this.page.NextPage(update)
