@@ -1,0 +1,35 @@
+package pages
+
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+)
+
+type IntegrationPage struct {
+	*Page
+}
+
+func NewIntegrationPage() *IntegrationPage {
+	return &IntegrationPage{
+		Page: NewPage(),
+	}
+}
+
+func (this *IntegrationPage) Name() string {
+	return consts.INTEGRATION_PAGE
+}
+
+func (this *IntegrationPage) AllowedOnlyCommands() bool {
+	return true
+}
+
+func (this *IntegrationPage) RespText(update tgbotapi.Update) string {
+	return `Here’s everything you need to get started:`
+}
+
+func (this *IntegrationPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return integrationPageKeyboard
+}
+
+var _ models.IPageWithKeyboard = (*IntegrationPage)(nil)

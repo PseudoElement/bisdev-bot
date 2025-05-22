@@ -1,0 +1,11 @@
+package consts
+
+// COMMANDS
+const (
+	COLLABORATE    = "COLLABORATE"
+	INTEGRATE      = "INTEGRATE"
+	SUPPORT        = "SUPPORT"
+	OTHER          = "OTHER"
+	BACK_TO_START  = "BACK_TO_START"
+	DESCRIBE_ISSUE = "DESCRIBE_ISSUE"
+)
