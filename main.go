@@ -14,5 +14,7 @@ func main() {
 	}
 
 	bot := bd_bot.NewBuisdevBot()
-	bot.Listen()
+	// bd_bot.NewBuisdevBot()
+	bot.ListenWithWebhook()
+	// bot.Listen()
 }

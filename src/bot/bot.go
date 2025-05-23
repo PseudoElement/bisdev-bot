@@ -1,9 +1,11 @@
 package bd_bot
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
@@ -15,6 +17,7 @@ type BuisdevBot struct {
 	isProd      bool
 	page        models.IPage
 	lastCommand string
+	admins      []string
 }
 
 func NewBuisdevBot() *BuisdevBot {
@@ -33,17 +36,65 @@ func NewBuisdevBot() *BuisdevBot {
 		panic("IS_PROD variable supposed to be true of false.")
 	}
 
+	adminsString, ok := os.LookupEnv("ADMINS")
+	if !ok {
+		adminsString = ""
+	}
+	admins := strings.Split(adminsString, " ")
+
 	bot.Debug = !isProd
 
 	b := &BuisdevBot{
-		bot:    bot,
-		isProd: isProd,
-		page:   pages.NewStartPage(),
+		bot:         bot,
+		isProd:      isProd,
+		page:        pages.NewStartPage(),
+		admins:      admins,
+		lastCommand: "",
 	}
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
 	return b
+}
+
+func (this *BuisdevBot) ListenWithWebhook() {
+	// pwd, _ := os.Getwd()
+	// certFile := pwd + "/cert.pem"
+	// keyFile := pwd + "/key.pem"
+
+	// wh, err := tgbotapi.NewWebhookWithCert("https://amojo.amocrm.ru/~external/hooks/telegram?t="+this.bot.Token, tgbotapi.FilePath(certFile))
+	// wh, err := tgbotapi.NewWebhook("https://amojo.amocrm.ru/~external/hooks/telegram?t=" + this.bot.Token)
+	// wh, err := tgbotapi.NewWebhook("https://amojo.amocrm.ru/" + this.bot.Token)
+	// _, err = this.bot.Request(wh)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	info, err := this.bot.GetWebhookInfo()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+
+	log.Printf("Webhook ==> %+v \n", info)
+	log.Printf("IsSet ==> %v \n", info.IsSet())
+	log.Printf("Token ==> %+v \n", this.bot.Token)
+
+	updatesChan := this.bot.ListenForWebhook(info.URL)
+	// updatesChan := this.bot.ListenForWebhook("https://amojo.amocrm.ru/~external/hooks/telegram?t=" + this.bot.Token)
+
+	for update := range updatesChan {
+		fmt.Println("Updates")
+
+		if update.Message != nil {
+			fmt.Printf("[%s] webhook Message - %s\n", update.Message.From.UserName, update.Message.Text)
+		}
+		if update.CallbackQuery != nil {
+			fmt.Printf("[%s] webhook CallbackQuery - %s\n", update.CallbackQuery.From.UserName, update.CallbackData())
+		}
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		this.bot.Send(msg)
+	}
 }
 
 func (this *BuisdevBot) Listen() {
@@ -57,7 +108,11 @@ func (this *BuisdevBot) Listen() {
 
 			switch update.Message.Text {
 			case "/start":
-				this.page = pages.NewStartPage()
+				if this.isAdmin(update.Message.From.UserName) {
+					this.page = pages.NewAdminStartPage()
+				} else {
+					this.page = pages.NewStartPage()
+				}
 				msg.Text = this.page.RespText(update)
 				msg.ReplyMarkup = this.page.(models.IPageWithKeyboard).Keyboard()
 			default:
@@ -89,4 +144,14 @@ func (this *BuisdevBot) Listen() {
 			this.page = nextPage
 		}
 	}
+}
+
+func (this *BuisdevBot) isAdmin(userName string) bool {
+	for _, adminName := range this.admins {
+		if strings.ToLower(userName) == strings.ToLower(adminName) {
+			return true
+		}
+	}
+
+	return false
 }

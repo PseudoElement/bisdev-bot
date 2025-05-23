@@ -32,6 +32,14 @@ var startPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
+var adminStartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData(
+			"🔍 Show messages.",
+			consts.BACK_TO_START,
+		),
+	))
+
 var thanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(

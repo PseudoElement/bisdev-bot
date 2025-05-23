@@ -29,8 +29,8 @@ Can you please provide:
 - Device & browser (if on web)
 - Screenshot (if possible)
 
-🔧 For faster help, feel free to head to our support Discord: https://t.me/I_Benfrid_Rubic
-Or wait here — I’ll log this and escalate it to our tech support team.`
+🔧 For faster help, feel free to head to our support Telegram: https://t.me/eobuhow
+Or describe your problem here — I’ll log this and escalate it to our tech support team.`
 }
 
 func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
