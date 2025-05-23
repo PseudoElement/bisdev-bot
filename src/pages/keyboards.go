@@ -43,8 +43,20 @@ var thanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 var supportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonURL(
-			"✉️ Discord link",
-			"https://t.me/I_Benfrid_Rubic",
+			"✉️ Egor's Telegram (Lead Support)",
+			"https://t.me/eobuhow",
+		),
+	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL(
+			"✉️ Daniel's Telegram (Support)",
+			"https://t.me/@daniel_melgin",
+		),
+	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL(
+			"✉️ Vasily's Telegram (Support)",
+			"https://t.me/whymint",
 		),
 	),
 	tgbotapi.NewInlineKeyboardRow(
