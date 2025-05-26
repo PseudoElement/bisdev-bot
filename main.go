@@ -5,7 +5,6 @@ import (
 
 	"github.com/joho/godotenv"
 	bd_bot "github.com/pseudoelement/rubic-buisdev-tg-bot/src/bot"
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db"
 )
 
 func main() {
@@ -14,8 +13,6 @@ func main() {
 		fmt.Println(err)
 	}
 
-	db := db.NewSqliteDB()
-
-	bot := bd_bot.NewBuisdevBot(db)
+	bot := bd_bot.NewBuisdevBot()
 	bot.Listen()
 }

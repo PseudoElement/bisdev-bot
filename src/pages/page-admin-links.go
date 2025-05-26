@@ -5,20 +5,21 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
+	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type LinksForAdminPage struct {
 	*Page
 }
 
-func NewLinksForAdminPage() *LinksForAdminPage {
+func NewAdminLinksPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *LinksForAdminPage {
 	return &LinksForAdminPage{
-		Page: NewPage(),
+		Page: NewPage(db, adminQueryBuilder),
 	}
 }
 
 func (this *LinksForAdminPage) Name() string {
-	return consts.LINKS_FOR_ADMIN_PAGE
+	return consts.ADMIN_LINKS_PAGE
 }
 
 func (this *LinksForAdminPage) RespText(update tgbotapi.Update) string {
@@ -26,7 +27,7 @@ func (this *LinksForAdminPage) RespText(update tgbotapi.Update) string {
 }
 
 func (this *LinksForAdminPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return keyboards.LinksForAdminPageKeyboard
+	return keyboards.AdminLinksPageKeyboard
 }
 
 var _ models.IPageWithKeyboard = (*LinksForAdminPage)(nil)

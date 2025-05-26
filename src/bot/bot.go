@@ -11,18 +11,20 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
+	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type BuisdevBot struct {
-	bot         *tgbotapi.BotAPI
-	db          *db.SqliteDB
-	isProd      bool
-	page        models.IPage
-	lastCommand string
-	admins      []string
+	bot               *tgbotapi.BotAPI
+	db                *db.SqliteDB
+	isProd            bool
+	page              models.IPage
+	lastCommand       string
+	admins            []string
+	adminQueryBuilder *query_builder.AdminQueryBuilder
 }
 
-func NewBuisdevBot(db *db.SqliteDB) *BuisdevBot {
+func NewBuisdevBot() *BuisdevBot {
 	token, ok := os.LookupEnv("BOT_API_KEY")
 	if !ok {
 		panic("BOT_API_KEY variable not provided in .env file.")
@@ -46,58 +48,20 @@ func NewBuisdevBot(db *db.SqliteDB) *BuisdevBot {
 
 	bot.Debug = !isProd
 
+	db := db.NewSqliteDB()
+	adminQueryBuilder := query_builder.NewAdminQueryBuilder()
+
 	b := &BuisdevBot{
-		bot:         bot,
-		isProd:      isProd,
-		page:        pages.NewStartPage(),
-		admins:      admins,
-		lastCommand: "",
-		db:          db,
+		bot:               bot,
+		isProd:            isProd,
+		page:              pages.NewStartPage(db, adminQueryBuilder),
+		admins:            admins,
+		lastCommand:       "",
+		db:                db,
+		adminQueryBuilder: adminQueryBuilder,
 	}
 
 	return b
-}
-
-func (this *BuisdevBot) ListenWithWebhook() {
-	// pwd, _ := os.Getwd()
-	// certFile := pwd + "/cert.pem"
-	// keyFile := pwd + "/key.pem"
-
-	// wh, err := tgbotapi.NewWebhookWithCert("https://amojo.amocrm.ru/~external/hooks/telegram?t="+this.bot.Token, tgbotapi.FilePath(certFile))
-	// wh, err := tgbotapi.NewWebhook("https://amojo.amocrm.ru/~external/hooks/telegram?t=" + this.bot.Token)
-	// wh, err := tgbotapi.NewWebhook("https://amojo.amocrm.ru/" + this.bot.Token)
-	// _, err = this.bot.Request(wh)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	info, err := this.bot.GetWebhookInfo()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
-
-	log.Printf("Webhook ==> %+v \n", info)
-	log.Printf("IsSet ==> %v \n", info.IsSet())
-	log.Printf("Token ==> %+v \n", this.bot.Token)
-
-	updatesChan := this.bot.ListenForWebhook(info.URL)
-	// updatesChan := this.bot.ListenForWebhook("https://amojo.amocrm.ru/~external/hooks/telegram?t=" + this.bot.Token)
-
-	for update := range updatesChan {
-		fmt.Println("Updates")
-
-		if update.Message != nil {
-			fmt.Printf("[%s] webhook Message - %s\n", update.Message.From.UserName, update.Message.Text)
-		}
-		if update.CallbackQuery != nil {
-			fmt.Printf("[%s] webhook CallbackQuery - %s\n", update.CallbackQuery.From.UserName, update.CallbackData())
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		this.bot.Send(msg)
-	}
 }
 
 func (this *BuisdevBot) Listen() {
@@ -106,16 +70,16 @@ func (this *BuisdevBot) Listen() {
 
 	for update := range this.bot.GetUpdatesChan(u) {
 		if update.Message != nil {
-			// fmt.Printf("[%s] text - %s, command - %s.\n", update.Message.From.UserName, update.Message.Text, update.Message.Command())
+			fmt.Printf("[%s] text - %s, command - %s.\n", update.Message.From.UserName, update.Message.Text, update.Message.Command())
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			userName := update.Message.From.UserName
 
 			switch update.Message.Text {
 			case "/start":
 				if this.isAdmin(userName) {
-					this.page = pages.NewAdminStartPage()
+					this.page = pages.NewAdminStartPage(this.db, this.adminQueryBuilder)
 				} else {
-					this.page = pages.NewStartPage()
+					this.page = pages.NewStartPage(this.db, this.adminQueryBuilder)
 				}
 				msg.Text = this.page.RespText(update)
 				msg.ReplyMarkup = this.page.(models.IPageWithKeyboard).Keyboard()
@@ -124,18 +88,34 @@ func (this *BuisdevBot) Listen() {
 					msg.Text = "Select one option from the list."
 					msg.ReplyMarkup = this.page.(models.IPageWithKeyboard).Keyboard()
 				} else {
+					pageWithAction, ok := this.page.(models.IPageWithAction)
+					if ok {
+						pageWithAction.Action(update)
+					}
+
 					nextPage := this.page.NextPage(update, this.isAdmin(userName))
 					msg.Text = nextPage.RespText(update)
-					msg.ReplyMarkup = nextPage.(models.IPageWithKeyboard).Keyboard()
+					nextPageWithKeyboard, ok := nextPage.(models.IPageWithKeyboard)
+					if ok {
+						msg.ReplyMarkup = nextPageWithKeyboard.Keyboard()
+					}
+
 					this.page = nextPage
 				}
 			}
 
 			this.bot.Send(msg)
+			this.bot.SendMediaGroup()
+			this.bot.GetFile(tgbotapi.FileConfig{FileID: update.Message.Animation.FileID})
 		} else if update.CallbackQuery != nil && update.CallbackQuery.Data != this.lastCommand {
-			// fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackQuery.Data)
+			fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackData())
 			this.lastCommand = update.CallbackQuery.Data
 			userName := update.CallbackQuery.From.UserName
+
+			pageWithAction, ok := this.page.(models.IPageWithAction)
+			if ok {
+				pageWithAction.Action(update)
+			}
 
 			nextPage := this.page.NextPage(update, this.isAdmin(userName))
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, nextPage.RespText(update))

@@ -19,3 +19,9 @@ type IPageWithKeyboard interface {
 
 	Keyboard() tgbotapi.InlineKeyboardMarkup
 }
+
+type IPageWithAction interface {
+	IPage
+
+	Action(update tgbotapi.Update)
+}

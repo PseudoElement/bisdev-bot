@@ -32,14 +32,6 @@ var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-var AdminStartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(
-			"🔍 Show messages.",
-			consts.SHOW_MESSAGES,
-		),
-	))
-
 var ThanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
@@ -92,4 +84,47 @@ var IntegrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-var LinksForAdminPageKeyboard = IntegrationPageKeyboard
+// admin pages keyboards
+var (
+	AdminStartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"🔍 Show messages",
+				consts.SHOW_MESSAGES,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"🔗 Check links",
+				consts.CHECK_LINKS,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"❌ Delete oldest messages",
+				consts.DELETE_MESSAGES,
+			),
+		),
+	)
+
+	AdminLinksPageKeyboard = IntegrationPageKeyboard
+
+	AdminListOfLinksPageKeyboard = ThanksPageKeyboard
+
+	AdminInfoAfterDeletionMsgPageKeyboard = ThanksPageKeyboard
+
+	AdminOldOrNewMessagesPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Show only new messages",
+				consts.SHOW_NEW_MESSAGES,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Show all messages",
+				consts.SHOW_ALL_MESSAGES,
+			),
+		),
+	)
+)

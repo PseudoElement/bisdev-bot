@@ -3,9 +3,10 @@ package quieres
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
 
-	"github.com/lib/pq"
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/db_models"
+	db_models "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/db-models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 )
 
@@ -13,14 +14,14 @@ type T_Messages struct {
 	conn *sql.DB
 }
 
-func NewTableMessages(conn *sql.DB) T_Messages {
+func NewTableMessages(conn *sql.DB) models.ITableMessages {
 	return T_Messages{conn: conn}
 }
 
 func (this T_Messages) CreateTable() error {
 	_, err := this.conn.Exec(
-		`CREATE TABLE IF NOT EXISTS messages(
-            id SERIAL NOT NULL PRIMARY KEY,
+		`CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER NOT NULL PRIMARY KEY,
             user_name VARCHAR(50) NOT NULL,
             text TEXT NOT NULL,
             new BOOLEAN NOT NULL,
@@ -32,6 +33,7 @@ func (this T_Messages) CreateTable() error {
 }
 
 func (this T_Messages) AddMessage(msg models.JsonClientMsg) error {
+	log.Printf("[T_Messages_AddMessages] msg ==> %+v", msg)
 	_, err := this.conn.Exec(
 		"INSERT INTO messages (user_name, text, new) VALUES ($1, $2, $3)",
 		msg.UserName, msg.Text, true)
@@ -41,7 +43,7 @@ func (this T_Messages) AddMessage(msg models.JsonClientMsg) error {
 
 func (this T_Messages) GetMesages(req models.MessagesReq) ([]models.JsonClientMsg, error) {
 	messages := make([]models.JsonClientMsg, 0, req.Count)
-	ids := make([]int, 0, req.Count)
+	dbMessages := make([]db_models.DB_ClientMessage, 0, req.Count)
 
 	// start tx
 	tx, err := this.conn.Begin()
@@ -54,7 +56,8 @@ func (this T_Messages) GetMesages(req models.MessagesReq) ([]models.JsonClientMs
 	if req.NewOnly {
 		query += "WHERE new = true "
 	}
-	query += "LIMIT $1 ORDER BY created_at DESC;"
+	query += "ORDER BY created_at DESC LIMIT $1;"
+	log.Println("[GetMessages] query ==> ", query)
 
 	rows, err := tx.Query(query, req.Count)
 	if err != nil {
@@ -69,17 +72,31 @@ func (this T_Messages) GetMesages(req models.MessagesReq) ([]models.JsonClientMs
 			return messages, err
 		}
 
-		ids = append(ids, dbMsg.Id)
+		dbMessages = append(dbMessages, dbMsg)
 		messages = append(messages, models.JsonClientMsg{UserName: dbMsg.UserName, Text: dbMsg.Text})
 	}
 
 	// Mark messages as read
-	if len(ids) > 0 {
-		_, err = tx.Exec("UPDATE messages SET new = false WHERE id = ANY($1)", pq.Array(ids))
-		if err != nil {
-			return messages, err
+	go func() {
+		if len(dbMessages) > 0 {
+			placeholders := make([]string, 0, len(dbMessages))
+			newIds := make([]any, 0, len(dbMessages))
+			for _, dbMsg := range dbMessages {
+				if dbMsg.New {
+					newIds = append(newIds, dbMsg.Id)
+					placeholders = append(placeholders, "?")
+				}
+			}
+
+			query := fmt.Sprintf("UPDATE messages SET new = false WHERE id IN (%s)", strings.Join(placeholders, ","))
+			log.Println("[T_Messages_GetMessages] update query ==> ", query)
+
+			_, err = this.conn.Exec(query, newIds...)
+			if err != nil {
+				log.Println("[T_Messages_GetMessages] update to false ==>", err)
+			}
 		}
-	}
+	}()
 
 	// end tx
 	err = tx.Commit()
@@ -88,4 +105,12 @@ func (this T_Messages) GetMesages(req models.MessagesReq) ([]models.JsonClientMs
 	}
 
 	return messages, nil
+}
+
+func (this T_Messages) DeleteMessages(count int) error {
+	_, err := this.conn.Exec(`
+		DELETE FROM messages WHERE id IN (
+			SELECT id FROM messages ORDER BY created_at ASC LIMIT $1
+		);`, count)
+	return err
 }

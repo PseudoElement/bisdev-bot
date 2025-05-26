@@ -7,15 +7,16 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
+	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type StartPage struct {
 	*Page
 }
 
-func NewStartPage() *StartPage {
+func NewStartPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *StartPage {
 	return &StartPage{
-		Page: NewPage(),
+		Page: NewPage(db, adminQueryBuilder),
 	}
 }
 
