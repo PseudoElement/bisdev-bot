@@ -105,8 +105,8 @@ func (this *BuisdevBot) Listen() {
 			}
 
 			this.bot.Send(msg)
-			this.bot.SendMediaGroup()
-			this.bot.GetFile(tgbotapi.FileConfig{FileID: update.Message.Animation.FileID})
+			// this.bot.SendMediaGroup()
+			// this.bot.GetFile(tgbotapi.FileConfig{FileID: update.Message.Animation.FileID})
 		} else if update.CallbackQuery != nil && update.CallbackQuery.Data != this.lastCommand {
 			fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackData())
 			this.lastCommand = update.CallbackQuery.Data
