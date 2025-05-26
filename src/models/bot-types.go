@@ -12,7 +12,7 @@ type JsonClientMsg struct {
 	Text     string `json:"text"`
 }
 
-type AdminMsg struct {
+type MessagesReq struct {
 	Count   int
 	NewOnly bool
 }

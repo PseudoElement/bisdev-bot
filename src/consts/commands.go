@@ -1,6 +1,6 @@
 package consts
 
-// COMMANDS
+// user COMMANDS
 const (
 	COLLABORATE    = "COLLABORATE"
 	INTEGRATE      = "INTEGRATE"
@@ -8,4 +8,9 @@ const (
 	OTHER          = "OTHER"
 	BACK_TO_START  = "BACK_TO_START"
 	DESCRIBE_ISSUE = "DESCRIBE_ISSUE"
+)
+
+// admin COMMANDS
+const (
+	SHOW_MESSAGES = "SHOW_MESSAGES"
 )

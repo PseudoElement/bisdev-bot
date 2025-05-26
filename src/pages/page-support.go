@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 )
 
 type SupportPage struct {
@@ -34,7 +35,7 @@ Or describe your problem here — I’ll log this and escalate it to our tech su
 }
 
 func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return supportPageKeyboard
+	return keyboards.SupportPageKeyboard
 }
 
 var _ models.IPageWithKeyboard = (*SupportPage)(nil)

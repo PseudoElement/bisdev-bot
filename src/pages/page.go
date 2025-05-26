@@ -16,7 +16,7 @@ func (this *Page) AllowedOnlyCommands() bool {
 	return false
 }
 
-func (this *Page) NextPage(update tgbotapi.Update) models.IPage {
+func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case consts.COLLABORATE:
@@ -28,7 +28,11 @@ func (this *Page) NextPage(update tgbotapi.Update) models.IPage {
 		case consts.OTHER:
 			return NewOtherPage()
 		case consts.BACK_TO_START:
-			return NewStartPage()
+			if isAdmin {
+				return NewAdminStartPage()
+			} else {
+				return NewStartPage()
+			}
 		case consts.DESCRIBE_ISSUE:
 			return NewIssueDescriptionPage()
 		default:

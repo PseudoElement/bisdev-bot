@@ -1,11 +1,11 @@
-package pages
+package keyboards
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 )
 
-var startPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
 			"1️⃣ I'm representing a DEX / Bridge / Chain / Aggregator / Intent protocol",
@@ -32,15 +32,15 @@ var startPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-var adminStartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+var AdminStartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
 			"🔍 Show messages.",
-			consts.BACK_TO_START,
+			consts.SHOW_MESSAGES,
 		),
 	))
 
-var thanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+var ThanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
 			"Back to start page.",
@@ -48,7 +48,7 @@ var thanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		),
 	))
 
-var supportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonURL(
 			"✉️ Egor's Telegram (Lead Support)",
@@ -80,25 +80,10 @@ var supportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		),
 	))
 
-var integrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL(
-			"🔧 SDK / API Docs",
-			"https://github.com/Cryptorubic/rubic-sdk",
-		),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL(
-			"🧠 Integration Guide",
-			"https://docs.rubic.finance/integrate-sdk/sdk-overview",
-		),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL(
-			"🚀 Product Overview",
-			"https://app.rubic.exchange/?fromChain=ETH&toChain=ETH",
-		),
-	),
+var IntegrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	sdkApiLink,
+	integrationGuideLink,
+	productOverviewLink,
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
 			"Back to start page.",
@@ -106,3 +91,5 @@ var integrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		),
 	),
 )
+
+var LinksForAdminPageKeyboard = IntegrationPageKeyboard

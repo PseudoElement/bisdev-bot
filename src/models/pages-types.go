@@ -7,7 +7,7 @@ import (
 type IPage interface {
 	RespText(update tgbotapi.Update) string
 	/* handles selected command and send next answer with buttons(or not) */
-	NextPage(update tgbotapi.Update) IPage
+	NextPage(update tgbotapi.Update, isAdmin bool) IPage
 
 	Name() string
 

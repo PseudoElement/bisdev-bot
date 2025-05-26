@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 )
 
 type IntegrationPage struct {
@@ -29,7 +30,7 @@ func (this *IntegrationPage) RespText(update tgbotapi.Update) string {
 }
 
 func (this *IntegrationPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return integrationPageKeyboard
+	return keyboards.IntegrationPageKeyboard
 }
 
 var _ models.IPageWithKeyboard = (*IntegrationPage)(nil)

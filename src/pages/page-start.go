@@ -6,6 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 )
 
 type StartPage struct {
@@ -48,7 +49,7 @@ Please choose one of the options below:
 }
 
 func (this *StartPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return startPageKeyboard
+	return keyboards.StartPageKeyboard
 }
 
 var _ models.IPageWithKeyboard = (*StartPage)(nil)

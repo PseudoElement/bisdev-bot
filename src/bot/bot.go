@@ -8,19 +8,21 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
 )
 
 type BuisdevBot struct {
 	bot         *tgbotapi.BotAPI
+	db          *db.SqliteDB
 	isProd      bool
 	page        models.IPage
 	lastCommand string
 	admins      []string
 }
 
-func NewBuisdevBot() *BuisdevBot {
+func NewBuisdevBot(db *db.SqliteDB) *BuisdevBot {
 	token, ok := os.LookupEnv("BOT_API_KEY")
 	if !ok {
 		panic("BOT_API_KEY variable not provided in .env file.")
@@ -50,6 +52,7 @@ func NewBuisdevBot() *BuisdevBot {
 		page:        pages.NewStartPage(),
 		admins:      admins,
 		lastCommand: "",
+		db:          db,
 	}
 
 	return b
@@ -105,10 +108,11 @@ func (this *BuisdevBot) Listen() {
 		if update.Message != nil {
 			// fmt.Printf("[%s] text - %s, command - %s.\n", update.Message.From.UserName, update.Message.Text, update.Message.Command())
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+			userName := update.Message.From.UserName
 
 			switch update.Message.Text {
 			case "/start":
-				if this.isAdmin(update.Message.From.UserName) {
+				if this.isAdmin(userName) {
 					this.page = pages.NewAdminStartPage()
 				} else {
 					this.page = pages.NewStartPage()
@@ -120,7 +124,7 @@ func (this *BuisdevBot) Listen() {
 					msg.Text = "Select one option from the list."
 					msg.ReplyMarkup = this.page.(models.IPageWithKeyboard).Keyboard()
 				} else {
-					nextPage := this.page.NextPage(update)
+					nextPage := this.page.NextPage(update, this.isAdmin(userName))
 					msg.Text = nextPage.RespText(update)
 					msg.ReplyMarkup = nextPage.(models.IPageWithKeyboard).Keyboard()
 					this.page = nextPage
@@ -131,8 +135,9 @@ func (this *BuisdevBot) Listen() {
 		} else if update.CallbackQuery != nil && update.CallbackQuery.Data != this.lastCommand {
 			// fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackQuery.Data)
 			this.lastCommand = update.CallbackQuery.Data
+			userName := update.CallbackQuery.From.UserName
 
-			nextPage := this.page.NextPage(update)
+			nextPage := this.page.NextPage(update, this.isAdmin(userName))
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, nextPage.RespText(update))
 
 			nextPageWithKB, ok := nextPage.(models.IPageWithKeyboard)
