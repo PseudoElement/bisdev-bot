@@ -14,12 +14,23 @@ import (
 
 type AdminListOfMessagesPage struct {
 	*Page
+	respText string
+	messages []models.DB_UserMessage
 }
 
-func NewAdminListOfMessagesPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminListOfMessagesPage {
-	return &AdminListOfMessagesPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewAdminListOfMessagesPage(
+	db models.IDatabase,
+	bot *tgbotapi.BotAPI,
+	adminQueryBuilder *query_builder.AdminQueryBuilder,
+) *AdminListOfMessagesPage {
+	p := &AdminListOfMessagesPage{
+		Page:     NewPage(db, bot, adminQueryBuilder),
+		respText: "",
+		messages: make([]models.DB_UserMessage, 0, 5),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminListOfMessagesPage) Name() string {
@@ -27,18 +38,12 @@ func (this *AdminListOfMessagesPage) Name() string {
 }
 
 func (this *AdminListOfMessagesPage) RespText(update tgbotapi.Update) string {
-	query := this.adminQueryBuilder.GetQueryMsg(this.UserName(update))
-	messages, err := this.db.Tables().Messages.GetMesages(query)
-	if err != nil {
-		log.Println("[AdminListOfMessagesPage_RespText] err in GetMesages: ", err)
-		return "Server error."
-	}
-	if len(messages) == 0 {
+	if len(this.messages) == 0 {
 		return "No new messages."
 	}
 
-	str := bytes.NewBufferString("Here is the list of messages:\n")
-	for _, msg := range messages {
+	str := bytes.NewBufferString("Here is the list of messages:\n\n")
+	for _, msg := range this.messages {
 		row := fmt.Sprintf("User: %s.\nMessage:\n %v\n\n", msg.UserName, msg.Text)
 		str.WriteString(row)
 	}
@@ -46,12 +51,30 @@ func (this *AdminListOfMessagesPage) RespText(update tgbotapi.Update) string {
 	return str.String()
 }
 
+func (this *AdminListOfMessagesPage) ActionOnInit(update tgbotapi.Update) {
+	query := this.adminQueryBuilder.GetQueryMsg(this.UserName(update))
+	messages, err := this.db.Tables().Messages.GetMessages(query)
+	this.messages = messages
+
+	if err != nil {
+		log.Println("[AdminListOfMessagesPage_ActionOnInit] err in GetMessages: ", err)
+		this.setErrorResp("Server error.")
+		return
+	}
+
+	this.setErrorResp("")
+}
+
 func (this *AdminListOfMessagesPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.AdminListOfLinksPageKeyboard
 }
 
 func (this *AdminListOfMessagesPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	return NewAdminStartPage(this.db, this.adminQueryBuilder)
+	if this.errResp != "" {
+		return this
+	}
+	return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
 }
 
 var _ models.IPageWithKeyboard = (*AdminListOfMessagesPage)(nil)
+var _ models.IPageWithActionOnInit = (*AdminListOfMessagesPage)(nil)

@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	db_models "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/db-models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 )
 
@@ -25,6 +24,7 @@ func (this T_Messages) CreateTable() error {
             user_name VARCHAR(50) NOT NULL,
             text TEXT NOT NULL,
             new BOOLEAN NOT NULL,
+			blob BLOB,
             created_at TMESTAMP DEFAULT CURRENT_TIMESTAMP
         );`,
 	)
@@ -32,76 +32,51 @@ func (this T_Messages) CreateTable() error {
 	return err
 }
 
-func (this T_Messages) AddMessage(msg models.JsonClientMsg) error {
+func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
 	log.Printf("[T_Messages_AddMessages] msg ==> %+v", msg)
-	_, err := this.conn.Exec(
-		"INSERT INTO messages (user_name, text, new) VALUES ($1, $2, $3)",
-		msg.UserName, msg.Text, true)
+
+	var err error
+	if msg.ImageBlob != nil && len(msg.ImageBlob) > 0 {
+		_, err = this.conn.Exec(
+			"INSERT INTO messages (user_name, text, new, blob) VALUES ($1, $2, $3, $4)",
+			msg.UserName, msg.Text, true, msg.ImageBlob)
+	} else {
+		_, err = this.conn.Exec(
+			"INSERT INTO messages (user_name, text, new) VALUES ($1, $2, $3)",
+			msg.UserName, msg.Text, true)
+	}
 
 	return err
 }
 
-func (this T_Messages) GetMesages(req models.MessagesReq) ([]models.JsonClientMsg, error) {
-	messages := make([]models.JsonClientMsg, 0, req.Count)
-	dbMessages := make([]db_models.DB_ClientMessage, 0, req.Count)
+func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMessage, error) {
+	messages := make([]models.DB_UserMessage, 0, req.Count)
 
-	// start tx
-	tx, err := this.conn.Begin()
-	if err != nil {
-		return messages, err
-	}
-	defer tx.Rollback()
-
-	query := "SELECT * FROM messages "
+	query := "SELECT id, user_name, text, new, created_at FROM messages "
 	if req.NewOnly {
 		query += "WHERE new = true "
 	}
 	query += "ORDER BY created_at DESC LIMIT $1;"
 	log.Println("[GetMessages] query ==> ", query)
 
-	rows, err := tx.Query(query, req.Count)
+	rows, err := this.conn.Query(query, req.Count)
 	if err != nil {
 		return messages, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		dbMsg := db_models.DB_ClientMessage{}
-		err := rows.Scan(&dbMsg.Id, &dbMsg.UserName, &dbMsg.Text, &dbMsg.New, &dbMsg.CreatedAt)
+		msg := models.DB_UserMessage{}
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
 
-		dbMessages = append(dbMessages, dbMsg)
-		messages = append(messages, models.JsonClientMsg{UserName: dbMsg.UserName, Text: dbMsg.Text})
+		messages = append(messages, msg)
 	}
 
-	// Mark messages as read
-	go func() {
-		if len(dbMessages) > 0 {
-			placeholders := make([]string, 0, len(dbMessages))
-			newIds := make([]any, 0, len(dbMessages))
-			for _, dbMsg := range dbMessages {
-				if dbMsg.New {
-					newIds = append(newIds, dbMsg.Id)
-					placeholders = append(placeholders, "?")
-				}
-			}
-
-			query := fmt.Sprintf("UPDATE messages SET new = false WHERE id IN (%s)", strings.Join(placeholders, ","))
-			log.Println("[T_Messages_GetMessages] update query ==> ", query)
-
-			_, err = this.conn.Exec(query, newIds...)
-			if err != nil {
-				log.Println("[T_Messages_GetMessages] update to false ==>", err)
-			}
-		}
-	}()
-
-	// end tx
-	err = tx.Commit()
-	if err != nil {
-		return messages, fmt.Errorf("[GetMesages] tx.Commit error: %v\n", err)
+	if len(messages) > 0 {
+		go this.markMessagesAsRead(messages)
 	}
 
 	return messages, nil
@@ -114,3 +89,102 @@ func (this T_Messages) DeleteMessages(count int) error {
 		);`, count)
 	return err
 }
+
+// LIMIT 10
+func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserMessage, error) {
+	messages := make([]models.DB_UserMessage, 0, 5)
+
+	rows, err := this.conn.Query(`
+		SELECT * FROM messages WHERE user_name = $1 
+		ORDER BY created_at DESC LIMIT 10;`,
+		userName,
+	)
+	if err != nil {
+		return messages, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		msg := models.DB_UserMessage{}
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		if err != nil {
+			return messages, err
+		}
+
+		messages = append(messages, msg)
+	}
+
+	if len(messages) > 0 {
+		go this.markMessagesAsRead(messages)
+	}
+
+	return messages, nil
+}
+
+func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
+	userNames := models.DB_UserNames{
+		NotRead:     make([]string, 10),
+		AlreadyRead: make([]string, 10),
+	}
+
+	query := "SELECT * FROM messages;"
+	rows, err := this.conn.Query(query)
+	if err != nil {
+		return userNames, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		msg := models.DB_UserMessage{}
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		if err != nil {
+			return userNames, err
+		}
+
+		if msg.New {
+			userNames.NotRead = append(userNames.NotRead, msg.UserName)
+		} else {
+			userNames.AlreadyRead = append(userNames.AlreadyRead, msg.UserName)
+		}
+	}
+
+	userNames.AlreadyRead = this.uniqueUserNames(userNames.AlreadyRead)
+	userNames.NotRead = this.uniqueUserNames(userNames.NotRead)
+
+	return userNames, nil
+}
+
+func (this T_Messages) uniqueUserNames(allUserNames []string) []string {
+	uniqueUserNames := make([]string, 0, len(allUserNames))
+	m := make(map[string]int8)
+	for _, name := range allUserNames {
+		_, ok := m[name]
+		if !ok {
+			m[name] = 0
+			uniqueUserNames = append(uniqueUserNames, name)
+		}
+	}
+
+	return uniqueUserNames
+}
+
+func (this T_Messages) markMessagesAsRead(messages []models.DB_UserMessage) {
+	placeholders := make([]string, 0, len(messages))
+	newIds := make([]any, 0, len(messages))
+	for _, msg := range messages {
+		if msg.New {
+			newIds = append(newIds, msg.Id)
+			placeholders = append(placeholders, "?")
+		}
+	}
+
+	query := fmt.Sprintf("UPDATE messages SET new = false WHERE id IN (%s)", strings.Join(placeholders, ","))
+	log.Println("[T_Messages_markMessagesAsRead] query ==> ", query)
+
+	_, err := this.conn.Exec(query, newIds...)
+	if err != nil {
+		log.Println("[T_Messages_markMessagesAsRead] err ==>", err)
+	}
+}
+
+var _ models.ITableMessages = &T_Messages{}

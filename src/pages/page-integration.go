@@ -12,10 +12,13 @@ type IntegrationPage struct {
 	*Page
 }
 
-func NewIntegrationPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *IntegrationPage {
-	return &IntegrationPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewIntegrationPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *IntegrationPage {
+	p := &IntegrationPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *IntegrationPage) Name() string {

@@ -9,15 +9,22 @@ type IDatabase interface {
 }
 
 type Tables struct {
-	Messages ITableMessages
+	Messages    ITableMessages
+	PinnedFiles ITablePinnedFiles
 }
 
 type ITableMessages interface {
 	CreateTable() error
 
-	AddMessage(msg JsonClientMsg) error
+	AddMessage(msg JsonMsgFromClient) error
 
-	GetMesages(req MessagesReq) ([]JsonClientMsg, error)
+	GetMessages(req MessagesReq) ([]DB_UserMessage, error)
+
+	GetMessagesByUserName(userName string) ([]DB_UserMessage, error)
 
 	DeleteMessages(count int) error
+
+	GetUserNames() (DB_UserNames, error)
 }
+
+type ITablePinnedFiles interface{}

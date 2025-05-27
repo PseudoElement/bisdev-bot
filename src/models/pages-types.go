@@ -20,8 +20,22 @@ type IPageWithKeyboard interface {
 	Keyboard() tgbotapi.InlineKeyboardMarkup
 }
 
-type IPageWithAction interface {
+type IPageWithActionOnDestroy interface {
 	IPage
 
-	Action(update tgbotapi.Update)
+	ActionOnDestroy(update tgbotapi.Update)
+}
+
+type IPageWithActionOnInit interface {
+	IPage
+
+	ActionOnInit(update tgbotapi.Update)
+}
+
+type IPageWithPhotos interface {
+	IPage
+
+	PhotosResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig
+
+	HasPhotos() bool
 }

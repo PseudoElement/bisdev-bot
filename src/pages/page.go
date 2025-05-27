@@ -12,19 +12,32 @@ import (
 type Page struct {
 	db                models.IDatabase
 	adminQueryBuilder *query_builder.AdminQueryBuilder
-	errResp           string
+	bot               *tgbotapi.BotAPI
+	// should be set in child structs
+	currPage models.IPage
+	errResp  string
 }
 
-func NewPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *Page {
+func NewPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *Page {
 	return &Page{
 		db:                db,
 		adminQueryBuilder: adminQueryBuilder,
+		bot:               bot,
+		currPage:          nil,
 		errResp:           "",
 	}
 }
 
 func (this *Page) AllowedOnlyCommands() bool {
 	return false
+}
+
+func (this *Page) Bot() *tgbotapi.BotAPI {
+	return this.bot
+}
+
+func (this *Page) CurrPage() models.IPage {
+	return this.currPage
 }
 
 func (this *Page) UserName(update tgbotapi.Update) string {
@@ -40,48 +53,77 @@ func (this *Page) UserName(update tgbotapi.Update) string {
 	return ""
 }
 
+func (this *Page) TextFromClient(update tgbotapi.Update) string {
+	if update.Message != nil {
+		if update.Message.Text != "" {
+			return update.Message.Text
+		}
+		if update.Message.Caption != "" {
+			return update.Message.Caption
+		}
+	}
+	if update.CallbackQuery != nil {
+		return update.CallbackData()
+	}
+	return ""
+}
+
 func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
+	if this.errResp != "" {
+		return this.CurrPage()
+	}
+
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case consts.COLLABORATE:
-			return NewPartnershipPage(this.db, this.adminQueryBuilder)
+			return NewPartnershipPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.INTEGRATE:
-			return NewIntegrationPage(this.db, this.adminQueryBuilder)
+			return NewIntegrationPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SUPPORT:
-			return NewSupportPage(this.db, this.adminQueryBuilder)
+			return NewSupportPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.OTHER:
-			return NewOtherPage(this.db, this.adminQueryBuilder)
+			return NewOtherPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.DESCRIBE_ISSUE:
-			return NewIssueDescriptionPage(this.db, this.adminQueryBuilder)
+			return NewIssueDescriptionPage(this.db, this.bot, this.adminQueryBuilder)
 
 		case consts.SHOW_MESSAGES:
-			return NewAdminSelectOldOrNewMsgsPage(this.db, this.adminQueryBuilder)
+			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
+		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER:
+			return NewAdminInputUserName(this.db, this.bot, this.adminQueryBuilder)
 		case consts.CHECK_LINKS:
-			return NewAdminLinksPage(this.db, this.adminQueryBuilder)
+			return NewAdminLinksPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SELECT_NUMBER_OF_MESSAGES:
-			return NewAdminSelectMsgCountPage(this.db, this.adminQueryBuilder)
+			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SHOW_ALL_OR_NEW_MESSAGES:
-			return NewAdminSelectOldOrNewMsgsPage(this.db, this.adminQueryBuilder)
+			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.DELETE_MESSAGES:
-			return NewAdminDeleteMsgCountPage(this.db, this.adminQueryBuilder)
+			return NewAdminDeleteMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 
 		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES:
-			return NewAdminSelectMsgCountPage(this.db, this.adminQueryBuilder)
+			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 
 		case consts.BACK_TO_START:
 			if isAdmin {
-				return NewAdminStartPage(this.db, this.adminQueryBuilder)
+				return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
 			} else {
-				return NewStartPage(this.db, this.adminQueryBuilder)
+				return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
 			}
 		default:
 			if isAdmin {
-				return NewAdminStartPage(this.db, this.adminQueryBuilder)
+				return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
 			} else {
-				return NewStartPage(this.db, this.adminQueryBuilder)
+				return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
 			}
 		}
 	}
 
-	return NewThanksPage(this.db, this.adminQueryBuilder)
+	return NewThanksPage(this.db, this.bot, this.adminQueryBuilder)
+}
+
+func (this *Page) setCurrenPage(page models.IPage) {
+	this.currPage = page
+}
+
+func (this *Page) setErrorResp(err string) {
+	this.errResp = err
 }

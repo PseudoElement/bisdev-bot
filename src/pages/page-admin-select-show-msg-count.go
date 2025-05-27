@@ -12,14 +12,15 @@ import (
 
 type AdminSelectMsgCountPage struct {
 	*Page
-	errRespMsg string
 }
 
-func NewAdminSelectMsgCountPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminSelectMsgCountPage {
-	return &AdminSelectMsgCountPage{
-		Page:       NewPage(db, adminQueryBuilder),
-		errRespMsg: "",
+func NewAdminSelectMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminSelectMsgCountPage {
+	p := &AdminSelectMsgCountPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminSelectMsgCountPage) Name() string {
@@ -27,25 +28,33 @@ func (this *AdminSelectMsgCountPage) Name() string {
 }
 
 func (this *AdminSelectMsgCountPage) RespText(update tgbotapi.Update) string {
-	if this.errRespMsg != "" {
-		return this.errRespMsg
+	if this.errResp != "" {
+		return this.errResp
 	}
-	return "Input number of latest messages, you want to see (ex. 1, 10, all):"
+	return "Input number of latest messages, you want to see (max number per request is 20):"
 }
 
-// add "ALL" messages
-func (this *AdminSelectMsgCountPage) Action(update tgbotapi.Update) {
-	count, err := strconv.Atoi(update.Message.Text)
+// ? add "ALL" messages
+func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
+	if update.Message == nil {
+		return
+	}
+
+	count, err := strconv.Atoi(this.TextFromClient(update))
 	if err != nil {
-		this.errRespMsg = fmt.Sprintf("%v is invalid number of messages.\n", update.Message.Text)
+		this.setErrorResp(fmt.Sprintf("%v is invalid number of messages.\n", this.TextFromClient(update)))
 		return
 	}
 	if count == 0 {
-		this.errRespMsg = "I think it's a joke. Try to use bigger number."
+		this.setErrorResp("I think it's a joke. Try to use bigger number.")
+		return
+	}
+	if count > 20 {
+		this.setErrorResp("Must be less or equal to 20.")
 		return
 	}
 
-	this.errRespMsg = ""
+	this.setErrorResp("")
 	this.adminQueryBuilder.SetCountOfQueryMsg(
 		this.UserName(update),
 		count,
@@ -53,11 +62,11 @@ func (this *AdminSelectMsgCountPage) Action(update tgbotapi.Update) {
 }
 
 func (this *AdminSelectMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	if this.errRespMsg != "" {
+	if this.errResp != "" {
 		return this
 	} else {
-		return NewAdminListOfMessagesPage(this.db, this.adminQueryBuilder)
+		return NewAdminListOfMessagesPage(this.db, this.bot, this.adminQueryBuilder)
 	}
 }
 
-var _ models.IPageWithAction = (*AdminSelectMsgCountPage)(nil)
+var _ models.IPageWithActionOnDestroy = (*AdminSelectMsgCountPage)(nil)

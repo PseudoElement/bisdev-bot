@@ -12,10 +12,13 @@ type ThanksPage struct {
 	*Page
 }
 
-func NewThanksPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *ThanksPage {
-	return &ThanksPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewThanksPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *ThanksPage {
+	p := &ThanksPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *ThanksPage) Name() string {

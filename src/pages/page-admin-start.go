@@ -14,10 +14,13 @@ type AdminStartPage struct {
 	*Page
 }
 
-func NewAdminStartPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminStartPage {
-	return &AdminStartPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewAdminStartPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminStartPage {
+	p := &AdminStartPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminStartPage) Name() string {

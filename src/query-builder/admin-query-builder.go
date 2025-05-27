@@ -8,13 +8,15 @@ import (
 )
 
 type AdminQueryBuilder struct {
-	mu            sync.RWMutex
-	queryMessages map[string]models.MessagesReq
+	mu                  sync.RWMutex
+	queryMessages       map[string]models.MessagesReq
+	queryMessagesOfUser map[string]string
 }
 
 func NewAdminQueryBuilder() *AdminQueryBuilder {
 	return &AdminQueryBuilder{
-		queryMessages: make(map[string]models.MessagesReq, 10),
+		queryMessages:       make(map[string]models.MessagesReq, 10),
+		queryMessagesOfUser: make(map[string]string, 10),
 	}
 }
 
@@ -52,4 +54,10 @@ func (this *AdminQueryBuilder) GetQueryMsg(adminName string) models.MessagesReq 
 	this.mu.RUnlock()
 
 	return query
+}
+
+func (this *AdminQueryBuilder) SetUserNameQueryMsgsOfUsers(adminName string, userNameToFetch string) {
+	this.mu.Lock()
+	this.queryMessagesOfUser[adminName] = userNameToFetch
+	this.mu.Unlock()
 }

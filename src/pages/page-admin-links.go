@@ -12,10 +12,13 @@ type LinksForAdminPage struct {
 	*Page
 }
 
-func NewAdminLinksPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *LinksForAdminPage {
-	return &LinksForAdminPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewAdminLinksPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *LinksForAdminPage {
+	p := &LinksForAdminPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *LinksForAdminPage) Name() string {

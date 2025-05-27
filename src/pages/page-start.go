@@ -14,10 +14,13 @@ type StartPage struct {
 	*Page
 }
 
-func NewStartPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *StartPage {
-	return &StartPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewStartPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *StartPage {
+	p := &StartPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *StartPage) Name() string {
@@ -29,21 +32,13 @@ func (this *StartPage) AllowedOnlyCommands() bool {
 }
 
 func (this *StartPage) RespText(update tgbotapi.Update) string {
-	var userName string
-	if update.Message != nil {
-		userName = update.Message.From.UserName
-	}
-	if update.CallbackQuery != nil {
-		userName = update.CallbackQuery.From.UserName
-	}
-
 	resp := fmt.Sprintf(
 		`Hey %s! 👋 Thanks for reaching out to Rubic — your universal DeFi aggregator for finding the best ratestraders. 
 To help you better, can you tell me what your request is about?
 
 Please choose one of the options below:
 `,
-		userName,
+		this.UserName(update),
 	)
 
 	return resp

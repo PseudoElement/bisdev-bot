@@ -13,14 +13,15 @@ import (
 
 type AdminDeleteMsgCountPage struct {
 	*Page
-	errRespMsg string
 }
 
-func NewAdminDeleteMsgCountPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminDeleteMsgCountPage {
-	return &AdminDeleteMsgCountPage{
-		Page:       NewPage(db, adminQueryBuilder),
-		errRespMsg: "",
+func NewAdminDeleteMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminDeleteMsgCountPage {
+	p := &AdminDeleteMsgCountPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminDeleteMsgCountPage) Name() string {
@@ -28,25 +29,29 @@ func (this *AdminDeleteMsgCountPage) Name() string {
 }
 
 func (this *AdminDeleteMsgCountPage) RespText(update tgbotapi.Update) string {
-	if this.errRespMsg != "" {
-		return this.errRespMsg
+	if this.errResp != "" {
+		return this.errResp
 	}
 	return "Input number of latest messages, you want to delete (ex. 1, 10):"
 }
 
 // add "ALL" messages
-func (this *AdminDeleteMsgCountPage) Action(update tgbotapi.Update) {
-	count, err := strconv.Atoi(update.Message.Text)
-	if err != nil {
-		this.errRespMsg = fmt.Sprintf("%v is invalid number of messages.\n", update.Message.Text)
-		return
-	}
-	if count == 0 {
-		this.errRespMsg = "I think it's a joke. Try to use bigger number."
+func (this *AdminDeleteMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
+	if update.Message == nil {
 		return
 	}
 
-	this.errRespMsg = ""
+	count, err := strconv.Atoi(this.TextFromClient(update))
+	if err != nil {
+		this.setErrorResp(fmt.Sprintf("%v is invalid number of messages.\n", this.TextFromClient(update)))
+		return
+	}
+	if count == 0 {
+		this.setErrorResp("I think it's a joke. Try to use bigger number.")
+		return
+	}
+
+	this.setErrorResp("")
 	go func() {
 		err := this.db.Tables().Messages.DeleteMessages(count)
 		if err != nil {
@@ -56,11 +61,11 @@ func (this *AdminDeleteMsgCountPage) Action(update tgbotapi.Update) {
 }
 
 func (this *AdminDeleteMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	if this.errRespMsg != "" {
+	if this.errResp != "" {
 		return this
 	} else {
-		return NewAdminInfoAfterDeletionPage(this.db, this.adminQueryBuilder)
+		return NewAdminInfoAfterDeletionPage(this.db, this.bot, this.adminQueryBuilder)
 	}
 }
 
-var _ models.IPageWithAction = (*AdminDeleteMsgCountPage)(nil)
+var _ models.IPageWithActionOnDestroy = (*AdminDeleteMsgCountPage)(nil)

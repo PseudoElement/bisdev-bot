@@ -95,6 +95,12 @@ var (
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
+				"👤 Show messages of specific user",
+				consts.SHOW_MESSAGES_OF_SPECIFIC_USER,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
 				"🔗 Check links",
 				consts.CHECK_LINKS,
 			),

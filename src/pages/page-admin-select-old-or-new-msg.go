@@ -12,10 +12,13 @@ type AdminSelectOldOrNewMsgsPage struct {
 	*Page
 }
 
-func NewAdminSelectOldOrNewMsgsPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminSelectOldOrNewMsgsPage {
-	return &AdminSelectOldOrNewMsgsPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewAdminSelectOldOrNewMsgsPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminSelectOldOrNewMsgsPage {
+	p := &AdminSelectOldOrNewMsgsPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminSelectOldOrNewMsgsPage) Name() string {
@@ -34,12 +37,16 @@ func (this *AdminSelectOldOrNewMsgsPage) Keyboard() tgbotapi.InlineKeyboardMarku
 	return keyboards.AdminOldOrNewMessagesPageKeyboard
 }
 
-func (this *AdminSelectOldOrNewMsgsPage) Action(update tgbotapi.Update) {
+func (this *AdminSelectOldOrNewMsgsPage) ActionOnDestroy(update tgbotapi.Update) {
+	if update.CallbackQuery == nil {
+		return
+	}
+
 	this.adminQueryBuilder.SetOldOrNewQueryMsg(
 		this.UserName(update),
 		update.CallbackData(),
 	)
 }
 
-var _ models.IPageWithAction = (*AdminSelectOldOrNewMsgsPage)(nil)
+var _ models.IPageWithActionOnDestroy = (*AdminSelectOldOrNewMsgsPage)(nil)
 var _ models.IPageWithKeyboard = (*AdminSelectOldOrNewMsgsPage)(nil)

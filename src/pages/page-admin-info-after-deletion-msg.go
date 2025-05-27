@@ -12,10 +12,13 @@ type AdminInfoAfterDeletionPage struct {
 	*Page
 }
 
-func NewAdminInfoAfterDeletionPage(db models.IDatabase, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminInfoAfterDeletionPage {
-	return &AdminInfoAfterDeletionPage{
-		Page: NewPage(db, adminQueryBuilder),
+func NewAdminInfoAfterDeletionPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminInfoAfterDeletionPage {
+	p := &AdminInfoAfterDeletionPage{
+		Page: NewPage(db, bot, adminQueryBuilder),
 	}
+	p.setCurrenPage(p)
+
+	return p
 }
 
 func (this *AdminInfoAfterDeletionPage) Name() string {
