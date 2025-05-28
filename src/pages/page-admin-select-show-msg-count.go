@@ -24,7 +24,7 @@ func NewAdminSelectMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, admin
 }
 
 func (this *AdminSelectMsgCountPage) Name() string {
-	return consts.ADMIN_MSG_COUNT_PAGE
+	return consts.ADMIN_SELECT_MSG_COUNT_PAGE
 }
 
 func (this *AdminSelectMsgCountPage) RespText(update tgbotapi.Update) string {

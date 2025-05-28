@@ -45,12 +45,21 @@ func (this *OtherPage) ActionOnDestroy(update tgbotapi.Update) {
 		UserName: this.UserName(update),
 		Text:     this.TextFromClient(update),
 	}
+	if update.Message.Document != nil {
+		fileId := update.Message.Document.FileID
+		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+		if err != nil {
+			log.Println("[OtherPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
+		}
+
+		dbMsg.ImageBlob = buf
+	}
 	if update.Message.Photo != nil {
 		photoSizes := update.Message.Photo
 		fileId := photoSizes[len(photoSizes)-1].FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {
-			log.Println("[OtherPage_Action] ReadUploadedFile_err ==>", err)
+			log.Println("[OtherPage_ActionOnDestroy] Photo_ReadUploadedFile_err ==>", err)
 		}
 
 		dbMsg.ImageBlob = buf
@@ -58,8 +67,8 @@ func (this *OtherPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	err := this.db.Tables().Messages.AddMessage(dbMsg)
 	if err != nil {
-		log.Println("[OtherPage_Action] AddMessage err ==> ", err)
-		this.setErrorResp("Error on server side trying to save yout message. Try to contact with support directly: https://t.me/eobuhow.")
+		log.Println("[OtherPage_ActionOnDestroy] AddMessage err ==> ", err)
+		this.setErrorResp("Error on server side trying to save your message. Try to contact with support directly: https://t.me/eobuhow.")
 	} else {
 		this.setErrorResp("")
 	}

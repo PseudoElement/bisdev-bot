@@ -35,7 +35,7 @@ func (this *IssueDescriptionPage) RespText(update tgbotapi.Update) string {
 - Tx Hash (if relevant)
 - Network / Tokens involved
 - Device & browser (if on web)
-- Screenshot (if possible)`
+- Screenshot (no more than 1 image per request)`
 }
 
 func (this *IssueDescriptionPage) ActionOnDestroy(update tgbotapi.Update) {
@@ -47,12 +47,21 @@ func (this *IssueDescriptionPage) ActionOnDestroy(update tgbotapi.Update) {
 		UserName: this.UserName(update),
 		Text:     this.TextFromClient(update),
 	}
+	if update.Message.Document != nil {
+		fileId := update.Message.Document.FileID
+		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+		if err != nil {
+			log.Println("[IssueDescriptionPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
+		}
+
+		dbMsg.ImageBlob = buf
+	}
 	if update.Message.Photo != nil {
 		photoSizes := update.Message.Photo
 		fileId := photoSizes[len(photoSizes)-1].FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {
-			log.Println("[IssueDescriptionPage_Action] ReadUploadedFile_err ==>", err)
+			log.Println("[IssueDescriptionPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
 		}
 
 		dbMsg.ImageBlob = buf
@@ -60,7 +69,7 @@ func (this *IssueDescriptionPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	err := this.db.Tables().Messages.AddMessage(dbMsg)
 	if err != nil {
-		log.Println("[IssueDescriptionPage_Action] AddMessage err ==> ", err)
+		log.Println("[IssueDescriptionPage_ActionOnDestroy] AddMessage err ==> ", err)
 		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
 	} else {
 		this.setErrorResp("")

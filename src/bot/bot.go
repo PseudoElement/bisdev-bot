@@ -140,6 +140,10 @@ func (this *BuisdevBot) Listen() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			userId := update.Message.From.ID
 
+			if update.Message.Text == "" && update.Message.Caption == "" {
+				continue
+			}
+
 			switch update.Message.Text {
 			case "/start":
 				if this.isAdmin(userId) {

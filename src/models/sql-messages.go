@@ -6,7 +6,7 @@ type DB_UserMessage struct {
 	UserName  string
 	Text      string
 	New       bool
-	ImgBlob   []byte `json:"img_blob,omitempty"`
+	ImgBlob   []byte
 }
 
 type DB_UserNames struct {

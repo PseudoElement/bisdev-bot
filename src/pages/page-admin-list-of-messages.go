@@ -39,7 +39,7 @@ func (this *AdminListOfMessagesPage) Name() string {
 
 func (this *AdminListOfMessagesPage) RespText(update tgbotapi.Update) string {
 	if len(this.messages) == 0 {
-		return "No new messages."
+		return "No messages found."
 	}
 
 	str := bytes.NewBufferString("Here is the list of messages:\n\n")

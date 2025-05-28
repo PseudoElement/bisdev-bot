@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type T_Messages struct {
@@ -33,7 +34,7 @@ func (this T_Messages) CreateTable() error {
 }
 
 func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
-	log.Printf("[T_Messages_AddMessages] msg ==> %+v", msg)
+	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Text, len(msg.ImageBlob)})
 
 	var err error
 	if msg.ImageBlob != nil && len(msg.ImageBlob) > 0 {
@@ -90,6 +91,32 @@ func (this T_Messages) DeleteMessages(count int) error {
 	return err
 }
 
+func (this T_Messages) DeleteMessagesByUserName(userName string) error {
+	_, err := this.conn.Exec("DELETE FROM messages WHERE user_name = $1;", userName)
+	return err
+}
+
+func (this T_Messages) CheckMessagesCount(fromTimestamp string) (int, error) {
+	log.Println("[T_Messsages_CheckMessagesCount] fromTimestamp ==>", fromTimestamp)
+
+	rows, err := this.conn.Query("SELECT created_at FROM messages;")
+	for rows.Next() {
+		var timestamp string
+		rows.Scan(&timestamp)
+		log.Println("timestamp_from_db ==>", timestamp)
+	}
+
+	var count int
+	err = this.conn.QueryRow(`
+		SELECT COUNT(id) FROM messages
+		WHERE created_at > $1;
+	`, fromTimestamp).Scan(&count)
+
+	log.Println("[T_Messsages_CheckMessagesCount] count ==>", count)
+
+	return count, err
+}
+
 // LIMIT 10
 func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserMessage, error) {
 	messages := make([]models.DB_UserMessage, 0, 5)
@@ -123,8 +150,8 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 
 func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 	userNames := models.DB_UserNames{
-		NotRead:     make([]string, 10),
-		AlreadyRead: make([]string, 10),
+		NotRead:     make([]string, 0, 10),
+		AlreadyRead: make([]string, 0, 10),
 	}
 
 	query := "SELECT * FROM messages;"
@@ -148,24 +175,13 @@ func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 		}
 	}
 
-	userNames.AlreadyRead = this.uniqueUserNames(userNames.AlreadyRead)
-	userNames.NotRead = this.uniqueUserNames(userNames.NotRead)
+	userNames.AlreadyRead = utils.FilterUnique(userNames.AlreadyRead)
+	userNames.NotRead = utils.FilterUnique(userNames.NotRead)
+
+	log.Println("userNames.AlreadyRead ==> ", len(userNames.AlreadyRead))
+	log.Println("userNames.NotRead ==> ", len(userNames.NotRead))
 
 	return userNames, nil
-}
-
-func (this T_Messages) uniqueUserNames(allUserNames []string) []string {
-	uniqueUserNames := make([]string, 0, len(allUserNames))
-	m := make(map[string]int8)
-	for _, name := range allUserNames {
-		_, ok := m[name]
-		if !ok {
-			m[name] = 0
-			uniqueUserNames = append(uniqueUserNames, name)
-		}
-	}
-
-	return uniqueUserNames
 }
 
 func (this T_Messages) markMessagesAsRead(messages []models.DB_UserMessage) {

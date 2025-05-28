@@ -74,7 +74,8 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	}
 
 	if update.CallbackQuery != nil {
-		switch update.CallbackQuery.Data {
+		ttm := consts.TIME_TO_MIN
+		switch update.CallbackData() {
 		case consts.COLLABORATE:
 			return NewPartnershipPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.INTEGRATE:
@@ -88,8 +89,8 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 
 		case consts.SHOW_MESSAGES:
 			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
-		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER:
-			return NewAdminInputUserName(this.db, this.bot, this.adminQueryBuilder)
+		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER:
+			return NewAdminInputUserNamePage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.CHECK_LINKS:
 			return NewAdminLinksPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SELECT_NUMBER_OF_MESSAGES:
@@ -98,9 +99,12 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.DELETE_MESSAGES:
 			return NewAdminDeleteMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
-
+		case ttm.Mins_10, ttm.Mins_30, ttm.Hour_1, ttm.Hours_3, ttm.Hours_6, ttm.Hours_12, ttm.Day_1, ttm.Days_3, ttm.Week_1, ttm.Weeks_2, ttm.Month_1, ttm.Months_3:
+			return NewAdminCountOfReceivedMsgsPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES:
 			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
+		case consts.SHOW_MESSAGES_COUNT_BY_TIME:
+			return NewAdminSelectTimeForMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 
 		case consts.BACK_TO_START:
 			if isAdmin {

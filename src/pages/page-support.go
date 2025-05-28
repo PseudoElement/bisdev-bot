@@ -35,7 +35,7 @@ Can you please provide:
 - Tx Hash (if relevant)
 - Network / Tokens involved
 - Device & browser (if on web)
-- Screenshot (if possible)
+- Screenshot (no more than 1 image per request)
 
 🔧 For faster help, feel free to head to our support Telegram: https://t.me/eobuhow.
 Or describe your problem here — I’ll log this and escalate it to our tech support team.`
@@ -54,13 +54,21 @@ func (this *SupportPage) ActionOnDestroy(update tgbotapi.Update) {
 		UserName: this.UserName(update),
 		Text:     this.TextFromClient(update),
 	}
-	// handle Photo sent via File
+	if update.Message.Document != nil {
+		fileId := update.Message.Document.FileID
+		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+		if err != nil {
+			log.Println("[SupportPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
+		}
+
+		dbMsg.ImageBlob = buf
+	}
 	if update.Message.Photo != nil {
 		photoSizes := update.Message.Photo
 		fileId := photoSizes[len(photoSizes)-1].FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {
-			log.Println("[SupportPage_Action] ReadUploadedFile_err ==>", err)
+			log.Println("[SupportPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
 		}
 
 		dbMsg.ImageBlob = buf
@@ -68,7 +76,7 @@ func (this *SupportPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	err := this.db.Tables().Messages.AddMessage(dbMsg)
 	if err != nil {
-		log.Println("[SupportPage_Action] AddMessage err ==> ", err)
+		log.Println("[SupportPage_ActionOnDestroy] AddMessage err ==> ", err)
 		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
 	} else {
 		this.setErrorResp("")

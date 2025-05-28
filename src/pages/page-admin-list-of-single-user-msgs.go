@@ -54,7 +54,7 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 	}
 
 	if len(this.messages) == 0 {
-		return "No new messages."
+		return "No messages found."
 	}
 
 	str := bytes.NewBufferString("Here is the list of messages:\n")
@@ -94,7 +94,6 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) tg
 
 func (this *AdminListOfSingleUserMsgsPage) ActionOnInit(update tgbotapi.Update) {
 	if update.Message == nil {
-		log.Println("[AdminListOfSingleUserMsgsPage_ActionOnInit] nil message err")
 		return
 	}
 

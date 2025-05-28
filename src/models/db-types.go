@@ -24,6 +24,10 @@ type ITableMessages interface {
 
 	DeleteMessages(count int) error
 
+	DeleteMessagesByUserName(userName string) error
+
+	CheckMessagesCount(fromTimestamp string) (int, error)
+
 	GetUserNames() (DB_UserNames, error)
 }
 

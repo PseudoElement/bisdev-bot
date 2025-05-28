@@ -52,12 +52,21 @@ func (this *PartnershipPage) ActionOnDestroy(update tgbotapi.Update) {
 		UserName: this.UserName(update),
 		Text:     this.TextFromClient(update),
 	}
+	if update.Message.Document != nil {
+		fileId := update.Message.Document.FileID
+		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+		if err != nil {
+			log.Println("[PartnershipPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
+		}
+
+		dbMsg.ImageBlob = buf
+	}
 	if update.Message.Photo != nil {
 		photoSizes := update.Message.Photo
 		fileId := photoSizes[len(photoSizes)-1].FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {
-			log.Println("[PartnershipPage_Action] ReadUploadedFile_err ==>", err)
+			log.Println("[PartnershipPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
 		}
 
 		dbMsg.ImageBlob = buf
@@ -65,7 +74,7 @@ func (this *PartnershipPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	err := this.db.Tables().Messages.AddMessage(dbMsg)
 	if err != nil {
-		log.Println("[PartnershipPage_Action] AddMessage err ==> ", err)
+		log.Println("[PartnershipPage_ActionOnDestroy] AddMessage err ==> ", err)
 		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
 	} else {
 		this.setErrorResp("")

@@ -25,7 +25,7 @@ func NewAdminDeleteMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, admin
 }
 
 func (this *AdminDeleteMsgCountPage) Name() string {
-	return consts.ADMIN_MSG_COUNT_PAGE
+	return consts.ADMIN_DELETE_MSG_COUNT_PAGE
 }
 
 func (this *AdminDeleteMsgCountPage) RespText(update tgbotapi.Update) string {
@@ -37,10 +37,6 @@ func (this *AdminDeleteMsgCountPage) RespText(update tgbotapi.Update) string {
 
 // add "ALL" messages
 func (this *AdminDeleteMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
-	if update.Message == nil {
-		return
-	}
-
 	count, err := strconv.Atoi(this.TextFromClient(update))
 	if err != nil {
 		this.setErrorResp(fmt.Sprintf("%v is invalid number of messages.\n", this.TextFromClient(update)))

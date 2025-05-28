@@ -101,6 +101,12 @@ var (
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
+				"📉 Show received messages count from users",
+				consts.SHOW_MESSAGES_COUNT_BY_TIME,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
 				"🔗 Check links",
 				consts.CHECK_LINKS,
 			),
@@ -111,6 +117,87 @@ var (
 				consts.DELETE_MESSAGES,
 			),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"❌ Delete messages of specific user",
+				consts.DELETE_MESSAGES_OF_USER,
+			),
+		),
+	)
+
+	AdminSelectTimeForMsgCountPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 10 minutes",
+				consts.TIME_TO_MIN.Mins_10,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 30 minutes",
+				consts.TIME_TO_MIN.Mins_30,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last hour",
+				consts.TIME_TO_MIN.Hour_1,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 3 hours",
+				consts.TIME_TO_MIN.Hours_3,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 6 hours",
+				consts.TIME_TO_MIN.Hours_6,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 12 hours",
+				consts.TIME_TO_MIN.Hours_12,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last day",
+				consts.TIME_TO_MIN.Day_1,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 3 days",
+				consts.TIME_TO_MIN.Days_3,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last week",
+				consts.TIME_TO_MIN.Week_1,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 2 weeks",
+				consts.TIME_TO_MIN.Weeks_2,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last month",
+				consts.TIME_TO_MIN.Month_1,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Last 3 months",
+				consts.TIME_TO_MIN.Months_3,
+			),
+		),
 	)
 
 	AdminLinksPageKeyboard = IntegrationPageKeyboard
@@ -118,6 +205,10 @@ var (
 	AdminListOfLinksPageKeyboard = ThanksPageKeyboard
 
 	AdminInfoAfterDeletionMsgPageKeyboard = ThanksPageKeyboard
+
+	AdminCountOfReceivedMsgsPageKeyboard = ThanksPageKeyboard
+
+	AdminInputUserNamePageKeyboard = ThanksPageKeyboard
 
 	AdminOldOrNewMessagesPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(

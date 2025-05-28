@@ -1,9 +1,15 @@
 package models
 
 type JsonMsgFromClient struct {
-	UserName  string `json:"user_name"`
-	Text      string `json:"text"`
-	ImageBlob []byte `json:"image_blob"`
+	UserName  string
+	Text      string
+	ImageBlob []byte
+}
+
+type MsgFromClientForLog struct {
+	UserName     string
+	Text         string
+	ImageBlobLen int
 }
 
 type MessagesReq struct {
