@@ -24,6 +24,10 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
 	}
+	if len(this.TextFromClient(update)) > 500 {
+		this.setErrorResp("Too long message. Max length is 500 chars")
+		return
+	}
 
 	dbMsg := models.JsonMsgFromClient{
 		UserName: this.UserName(update),

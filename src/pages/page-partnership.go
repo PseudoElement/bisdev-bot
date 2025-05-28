@@ -41,43 +41,5 @@ Can you share the following:
 Once you're done, I’ll share this with our BD team and we’ll follow up fast.  `
 }
 
-// func (this *PartnershipPage) ActionOnDestroy(update tgbotapi.Update) {
-// 	if update.Message == nil {
-// 		return
-// 	}
-
-// 	dbMsg := models.JsonMsgFromClient{
-// 		UserName: this.UserName(update),
-// 		Text:     this.TextFromClient(update),
-// 	}
-// 	if update.Message.Document != nil {
-// 		fileId := update.Message.Document.FileID
-// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-// 		if err != nil {
-// 			log.Println("[PartnershipPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
-// 		}
-
-// 		dbMsg.ImageBlob = buf
-// 	}
-// 	if update.Message.Photo != nil {
-// 		photoSizes := update.Message.Photo
-// 		fileId := photoSizes[len(photoSizes)-1].FileID
-// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-// 		if err != nil {
-// 			log.Println("[PartnershipPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
-// 		}
-
-// 		dbMsg.ImageBlob = buf
-// 	}
-
-// 	err := this.db.Tables().Messages.AddMessage(dbMsg)
-// 	if err != nil {
-// 		log.Println("[PartnershipPage_ActionOnDestroy] AddMessage err ==> ", err)
-// 		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
-// 	} else {
-// 		this.setErrorResp("")
-// 	}
-// }
-
 var _ models.IPage = (*PartnershipPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*PartnershipPage)(nil)

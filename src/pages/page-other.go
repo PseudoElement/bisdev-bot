@@ -34,43 +34,5 @@ func (this *OtherPage) RespText(update tgbotapi.Update) string {
 We aim to reply within 24 hours.`
 }
 
-// func (this *OtherPage) ActionOnDestroy(update tgbotapi.Update) {
-// 	if update.Message == nil {
-// 		return
-// 	}
-
-// 	dbMsg := models.JsonMsgFromClient{
-// 		UserName: this.UserName(update),
-// 		Text:     this.TextFromClient(update),
-// 	}
-// 	if update.Message.Document != nil {
-// 		fileId := update.Message.Document.FileID
-// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-// 		if err != nil {
-// 			log.Println("[OtherPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
-// 		}
-
-// 		dbMsg.ImageBlob = buf
-// 	}
-// 	if update.Message.Photo != nil {
-// 		photoSizes := update.Message.Photo
-// 		fileId := photoSizes[len(photoSizes)-1].FileID
-// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-// 		if err != nil {
-// 			log.Println("[OtherPage_ActionOnDestroy] Photo_ReadUploadedFile_err ==>", err)
-// 		}
-
-// 		dbMsg.ImageBlob = buf
-// 	}
-
-// 	err := this.db.Tables().Messages.AddMessage(dbMsg)
-// 	if err != nil {
-// 		log.Println("[OtherPage_ActionOnDestroy] AddMessage err ==> ", err)
-// 		this.setErrorResp("Error on server side trying to save your message. Try to contact with support directly: https://t.me/eobuhow.")
-// 	} else {
-// 		this.setErrorResp("")
-// 	}
-// }
-
 var _ models.IPage = (*OtherPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*OtherPage)(nil)
