@@ -140,10 +140,6 @@ func (this *BuisdevBot) Listen() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			userId := update.Message.From.ID
 
-			if update.Message.Text == "" && update.Message.Caption == "" {
-				continue
-			}
-
 			switch update.Message.Text {
 			case "/start":
 				if this.isAdmin(userId) {
@@ -156,7 +152,11 @@ func (this *BuisdevBot) Listen() {
 
 				go this.bot.Send(msg)
 			default:
-				if this.page.AllowedOnlyCommands() {
+				if update.Message.Text == "" && update.Message.Caption == "" {
+					msg.Text = "Message wihout text is not allowed to save."
+
+					go this.bot.Send(msg)
+				} else if this.page.AllowedOnlyCommands() {
 					msg.Text = "Select one option from the list."
 					msg.ReplyMarkup = this.page.(models.IPageWithKeyboard).Keyboard()
 

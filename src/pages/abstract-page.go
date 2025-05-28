@@ -2,6 +2,7 @@ package pages
 
 import (
 	"log"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
@@ -41,16 +42,16 @@ func (this *Page) CurrPage() models.IPage {
 }
 
 func (this *Page) UserName(update tgbotapi.Update) string {
-	if update.Message != nil {
+	if update.Message != nil && update.Message.From.UserName != "" {
 		return update.Message.From.UserName
 	}
-	if update.CallbackQuery != nil {
+	if update.CallbackQuery != nil && update.CallbackQuery.From.UserName != "" {
 		return update.CallbackQuery.From.UserName
 	}
 
 	log.Println("[Page_UserName()] unexpected empty UserName ==> ", update)
 
-	return ""
+	return strconv.Itoa(int(update.Message.From.ID))
 }
 
 func (this *Page) TextFromClient(update tgbotapi.Update) string {
