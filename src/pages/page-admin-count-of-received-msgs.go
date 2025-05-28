@@ -50,7 +50,7 @@ func (this *AdminCountOfReceivedMsgsPage) RespText(update tgbotapi.Update) strin
 		str = "message"
 	}
 
-	return fmt.Sprintf("Users sent %d %s since %s.", this.msgCount, str, timestamp)
+	return fmt.Sprintf("Users sent %d %s since %s(Moscow time).", this.msgCount, str, timestamp)
 }
 
 func (this *AdminCountOfReceivedMsgsPage) ActionOnInit(update tgbotapi.Update) {

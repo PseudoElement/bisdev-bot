@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -31,11 +32,12 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	dbMsg := models.JsonMsgFromClient{
 		UserName: this.UserName(update),
+		Initials: fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
 		Text:     this.TextFromClient(update),
 	}
 
 	doc := update.Message.Document
-	if doc != nil && (doc.MimeType == "image/jpeg" || doc.MimeType == "image/png" || doc.MimeType == "image/svg+xml") {
+	if doc != nil && (doc.MimeType == "image/jpeg" || doc.MimeType == "image/png") {
 		fileId := update.Message.Document.FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {

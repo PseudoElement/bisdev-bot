@@ -4,6 +4,7 @@ type DB_UserMessage struct {
 	Id        int
 	CreatedAt string
 	UserName  string
+	Initials  string
 	Text      string
 	New       bool
 	ImgBlob   []byte

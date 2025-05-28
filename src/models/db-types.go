@@ -16,6 +16,8 @@ type Tables struct {
 type ITableMessages interface {
 	CreateTable() error
 
+	AlterTable(columnName string, defaultValue string) error
+
 	AddMessage(msg JsonMsgFromClient) error
 
 	GetMessages(req MessagesReq) ([]DB_UserMessage, error)

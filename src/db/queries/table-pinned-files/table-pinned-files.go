@@ -1,4 +1,4 @@
-package quieres
+package t_pinned_files
 
 import (
 	"database/sql"

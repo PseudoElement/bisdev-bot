@@ -1,7 +1,6 @@
-package quieres
+package t_messages
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strings"
@@ -10,37 +9,14 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
-type T_Messages struct {
-	conn *sql.DB
-}
-
-func NewTableMessages(conn *sql.DB) models.ITableMessages {
-	return T_Messages{conn: conn}
-}
-
-func (this T_Messages) CreateTable() error {
-	_, err := this.conn.Exec(
-		`CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER NOT NULL PRIMARY KEY,
-            user_name VARCHAR(50) NOT NULL,
-            text TEXT NOT NULL,
-            new BOOLEAN NOT NULL,
-			blob BLOB,
-            created_at TMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );`,
-	)
-
-	return err
-}
-
 func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
-	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Text, len(msg.ImageBlob)})
+	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Initials, msg.Text, len(msg.ImageBlob)})
 
 	var err error
 	if msg.ImageBlob != nil && len(msg.ImageBlob) > 0 {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, text, new, blob) VALUES ($1, $2, $3, $4)",
-			msg.UserName, msg.Text, true, msg.ImageBlob)
+			"INSERT INTO messages (user_name, initials, text, new, blob) VALUES ($1, $2, $3, $4, $5)",
+			msg.UserName, msg.Initials, msg.Text, true, msg.ImageBlob)
 	} else {
 		_, err = this.conn.Exec(
 			"INSERT INTO messages (user_name, text, new) VALUES ($1, $2, $3)",
@@ -53,7 +29,7 @@ func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
 func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMessage, error) {
 	messages := make([]models.DB_UserMessage, 0, req.Count)
 
-	query := "SELECT id, user_name, text, new, created_at FROM messages "
+	query := "SELECT id, user_name, initials, text, new, created_at FROM messages "
 	if req.NewOnly {
 		query += "WHERE new = true "
 	}
@@ -68,7 +44,7 @@ func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMess
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
@@ -99,15 +75,8 @@ func (this T_Messages) DeleteMessagesByUserName(userName string) error {
 func (this T_Messages) CheckMessagesCount(fromTimestamp string) (int, error) {
 	log.Println("[T_Messsages_CheckMessagesCount] fromTimestamp ==>", fromTimestamp)
 
-	rows, err := this.conn.Query("SELECT created_at FROM messages;")
-	for rows.Next() {
-		var timestamp string
-		rows.Scan(&timestamp)
-		log.Println("timestamp_from_db ==>", timestamp)
-	}
-
 	var count int
-	err = this.conn.QueryRow(`
+	err := this.conn.QueryRow(`
 		SELECT COUNT(id) FROM messages
 		WHERE created_at > $1;
 	`, fromTimestamp).Scan(&count)
@@ -133,7 +102,7 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
@@ -163,7 +132,7 @@ func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
 		if err != nil {
 			return userNames, err
 		}

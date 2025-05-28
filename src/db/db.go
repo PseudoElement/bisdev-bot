@@ -5,7 +5,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
-	quieres "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries"
+	t_messages "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries/table-messages"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 )
 
@@ -24,12 +24,12 @@ func NewSqliteDB() *SqliteDB {
 	db.conn = conn
 
 	db.tables = models.Tables{
-		Messages: quieres.NewTableMessages(conn),
+		Messages: t_messages.NewTableMessages(conn),
 	}
 
 	err = db.tables.Messages.CreateTable()
 	if err != nil {
-		panic("[NewSqliteDB] CreateTable err:" + err.Error())
+		panic("[NewSqliteDB] CreateTable err ==>" + err.Error())
 	}
 
 	log.Println("Sqlite successfully connected.")

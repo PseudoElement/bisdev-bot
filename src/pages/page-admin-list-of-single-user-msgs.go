@@ -11,6 +11,7 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type AdminListOfSingleUserMsgsPage struct {
@@ -59,7 +60,12 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 
 	str := bytes.NewBufferString("Here is the list of messages:\n")
 	for _, msg := range this.messages {
-		row := fmt.Sprintf("User: %s\nMessage:\n %v\n\n", msg.UserName, msg.Text)
+		row := fmt.Sprintf("Username: %s\nInitials: %s\nCreation time(Moscow time): %v\nMessage:\n %v\n\n",
+			msg.UserName,
+			msg.Initials,
+			utils.ConvertUTCToMoscowTime(msg.CreatedAt),
+			msg.Text,
+		)
 		str.WriteString(row)
 	}
 

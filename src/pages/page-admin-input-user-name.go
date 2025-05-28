@@ -57,8 +57,6 @@ func (this *AdminInputUserNamePage) RespText(update tgbotapi.Update) string {
 func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 	userNameFromInput := this.TextFromClient(update)
 	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
-	log.Println("[AdminInputUserNamePage_ActionOnDestroy] allUserNames ==>", allUserNames)
-	log.Println("[AdminInputUserNamePage_ActionOnDestroy] userNameFromInput ==>", userNameFromInput)
 
 	for _, name := range allUserNames {
 		if strings.ToLower(name) == strings.ToLower(userNameFromInput) {

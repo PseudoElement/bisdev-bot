@@ -27,3 +27,10 @@ func GetSqlTimestampByMinutes(mins int, past bool) string {
 
 	return formatted
 }
+
+func ConvertUTCToMoscowTime(timestampUTC string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05", timestampUTC)
+	t = t.Add(3 * time.Hour)
+
+	return t.Format("2006-01-02 15:04:05")
+}
