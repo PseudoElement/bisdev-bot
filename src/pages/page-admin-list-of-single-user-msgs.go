@@ -59,7 +59,7 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 
 	str := bytes.NewBufferString("Here is the list of messages:\n")
 	for _, msg := range this.messages {
-		row := fmt.Sprintf("User: %s.\nMessage:\n %v\n\n", msg.UserName, msg.Text)
+		row := fmt.Sprintf("User: %s\nMessage:\n %v\n\n", msg.UserName, msg.Text)
 		str.WriteString(row)
 	}
 

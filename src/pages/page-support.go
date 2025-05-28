@@ -1,23 +1,21 @@
 package pages
 
 import (
-	"log"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type SupportPage struct {
-	*Page
+	*AbstrUserInputPage
 }
 
 func NewSupportPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *SupportPage {
+	basePage := NewPage(db, bot, adminQueryBuilder)
 	p := &SupportPage{
-		Page: NewPage(db, bot, adminQueryBuilder),
+		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
 	}
 	p.setCurrenPage(p)
 
@@ -45,43 +43,43 @@ func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.SupportPageKeyboard
 }
 
-func (this *SupportPage) ActionOnDestroy(update tgbotapi.Update) {
-	if update.Message == nil {
-		return
-	}
+// func (this *SupportPage) ActionOnDestroy(update tgbotapi.Update) {
+// 	if update.Message == nil {
+// 		return
+// 	}
 
-	dbMsg := models.JsonMsgFromClient{
-		UserName: this.UserName(update),
-		Text:     this.TextFromClient(update),
-	}
-	if update.Message.Document != nil {
-		fileId := update.Message.Document.FileID
-		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-		if err != nil {
-			log.Println("[SupportPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
-		}
+// 	dbMsg := models.JsonMsgFromClient{
+// 		UserName: this.UserName(update),
+// 		Text:     this.TextFromClient(update),
+// 	}
+// 	if update.Message.Document != nil {
+// 		fileId := update.Message.Document.FileID
+// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+// 		if err != nil {
+// 			log.Println("[SupportPage_ActionOnDestroy] Document_ReadUploadedFile_err ==>", err)
+// 		}
 
-		dbMsg.ImageBlob = buf
-	}
-	if update.Message.Photo != nil {
-		photoSizes := update.Message.Photo
-		fileId := photoSizes[len(photoSizes)-1].FileID
-		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-		if err != nil {
-			log.Println("[SupportPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
-		}
+// 		dbMsg.ImageBlob = buf
+// 	}
+// 	if update.Message.Photo != nil {
+// 		photoSizes := update.Message.Photo
+// 		fileId := photoSizes[len(photoSizes)-1].FileID
+// 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
+// 		if err != nil {
+// 			log.Println("[SupportPage_ActionOnDestroy] ReadUploadedFile_err ==>", err)
+// 		}
 
-		dbMsg.ImageBlob = buf
-	}
+// 		dbMsg.ImageBlob = buf
+// 	}
 
-	err := this.db.Tables().Messages.AddMessage(dbMsg)
-	if err != nil {
-		log.Println("[SupportPage_ActionOnDestroy] AddMessage err ==> ", err)
-		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
-	} else {
-		this.setErrorResp("")
-	}
-}
+// 	err := this.db.Tables().Messages.AddMessage(dbMsg)
+// 	if err != nil {
+// 		log.Println("[SupportPage_ActionOnDestroy] AddMessage err ==> ", err)
+// 		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
+// 	} else {
+// 		this.setErrorResp("")
+// 	}
+// }
 
 var _ models.IPageWithKeyboard = (*SupportPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*SupportPage)(nil)

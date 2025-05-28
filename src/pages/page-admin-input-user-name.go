@@ -115,7 +115,7 @@ func (this *AdminInputUserNamePage) respForDeletion(update tgbotapi.Update) stri
 	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
 	uniqueNames := utils.FilterUnique(allUserNames)
 	str := bytes.NewBufferString("Input username you want to delete from the list below:\n\n")
-	str.WriteString(strings.Join(uniqueNames, " "))
+	str.WriteString(strings.Join(uniqueNames, ", "))
 
 	return str.String()
 }
@@ -124,13 +124,13 @@ func (this *AdminInputUserNamePage) respForShowMessages(update tgbotapi.Update) 
 	str := bytes.NewBufferString("Input username you want to check from the list below:\n\n")
 	if len(this.userNames.NotRead) > 0 {
 		str.WriteString("New messages from:\n")
-		str.WriteString(strings.Join(this.userNames.NotRead, " "))
+		str.WriteString(strings.Join(this.userNames.NotRead, ", "))
 		str.WriteString("\n\n")
 	}
 
 	if len(this.userNames.AlreadyRead) > 0 {
 		str.WriteString("Already read messages from:\n")
-		str.WriteString(strings.Join(this.userNames.AlreadyRead, " "))
+		str.WriteString(strings.Join(this.userNames.AlreadyRead, ", "))
 	}
 
 	return str.String()
