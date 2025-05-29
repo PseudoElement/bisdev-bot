@@ -27,6 +27,10 @@ func (this *AbstrUserInputPage) AllowedOnlyMessages() bool {
 }
 
 func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
+	if update.CallbackData() == consts.BACK_TO_START {
+		this.setErrorResp("")
+		return
+	}
 	if update.Message == nil {
 		return
 	}
@@ -36,9 +40,10 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	}
 
 	dbMsg := models.JsonMsgFromClient{
-		UserName: this.UserName(update),
-		Initials: fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
-		Text:     this.TextFromClient(update),
+		UserName:  this.UserName(update),
+		Initials:  fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
+		Text:      this.TextFromClient(update),
+		CreatedAt: utils.GetSqlTimestampByMinutesUTC(0, false),
 	}
 
 	doc := update.Message.Document
@@ -84,7 +89,11 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	go func() {
 		err := this.db.Tables().Messages.AddMessage(dbMsg)
 		if err != nil {
-			log.Println("[IssueDescriptionPage_ActionOnDestroy] AddMessage err ==> ", err)
+			log.Println("[IssueDescriptionPage_ActionOnDestroy] Messages_AddMessage err ==> ", err)
+		}
+		err = this.db.Tables().MessagesCount.AddMessage(dbMsg)
+		if err != nil {
+			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)
 		}
 	}()
 }

@@ -26,6 +26,10 @@ func (this *IssueDescriptionPage) Name() string {
 }
 
 func (this *IssueDescriptionPage) RespText(update tgbotapi.Update) string {
+	if this.errResp != "" {
+		return this.errResp
+	}
+
 	return `Can you please provide:
 - A short description of the issue
 - Tx Hash (if relevant)

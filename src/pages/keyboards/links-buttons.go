@@ -23,4 +23,11 @@ var (
 			"https://app.rubic.exchange/?fromChain=ETH&toChain=ETH",
 		),
 	)
+
+	supportBotLink = tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL(
+			"✉️  Support-team Bot",
+			"https://t.me/RubicSupportBot",
+		),
+	)
 )

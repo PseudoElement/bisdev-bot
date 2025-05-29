@@ -5,6 +5,8 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 )
 
+var EmptyBoard = tgbotapi.NewInlineKeyboardMarkup()
+
 var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
@@ -30,6 +32,12 @@ var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 			consts.OTHER,
 		),
 	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL(
+			"✉️ Chat with support team directly",
+			"https://t.me/RubicSupportBot",
+		),
+	),
 )
 
 var ThanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -43,20 +51,8 @@ var ThanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonURL(
-			"✉️ Egor's Telegram (Lead Support)",
-			"https://t.me/eobuhow",
-		),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL(
-			"✉️ Daniel's Telegram (Support)",
-			"https://t.me/@daniel_melgin",
-		),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL(
-			"✉️ Vasily's Telegram (Support)",
-			"https://t.me/whymint",
+			"✉️ Chat with support team directly",
+			"https://t.me/RubicSupportBot",
 		),
 	),
 	tgbotapi.NewInlineKeyboardRow(
@@ -76,6 +72,7 @@ var IntegrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	sdkApiLink,
 	integrationGuideLink,
 	productOverviewLink,
+	supportBotLink,
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
 			"Back to start page.",
@@ -206,7 +203,19 @@ var (
 
 	AdminInfoAfterDeletionMsgPageKeyboard = ThanksPageKeyboard
 
-	AdminCountOfReceivedMsgsPageKeyboard = ThanksPageKeyboard
+	AdminCountOfReceivedMsgsPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"🔍 Show messages",
+				consts.SHOW_MESSAGES,
+			),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Back to start page.",
+				consts.BACK_TO_START,
+			),
+		))
 
 	AdminInputUserNamePageKeyboard = ThanksPageKeyboard
 

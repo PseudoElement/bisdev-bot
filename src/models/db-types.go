@@ -9,8 +9,9 @@ type IDatabase interface {
 }
 
 type Tables struct {
-	Messages    ITableMessages
-	PinnedFiles ITablePinnedFiles
+	Messages      ITableMessages
+	MessagesCount ITableMessagesCount
+	PinnedFiles   ITablePinnedFiles
 }
 
 type ITableMessages interface {
@@ -28,9 +29,16 @@ type ITableMessages interface {
 
 	DeleteMessagesByUserName(userName string) error
 
-	CheckMessagesCount(fromTimestamp string) (int, error)
-
 	GetUserNames() (DB_UserNames, error)
 }
 
+type ITableMessagesCount interface {
+	CreateTable() error
+
+	AddMessage(msg JsonMsgFromClient) error
+
+	CheckMessagesCount(fromTimestamp string) (int, error)
+}
+
+// @IMPROVEMENT add opportunity to store many messages
 type ITablePinnedFiles interface{}

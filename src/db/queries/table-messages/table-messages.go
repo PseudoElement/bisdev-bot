@@ -15,12 +15,12 @@ func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
 	var err error
 	if msg.ImageBlob != nil && len(msg.ImageBlob) > 0 {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, initials, text, new, blob) VALUES ($1, $2, $3, $4, $5)",
-			msg.UserName, msg.Initials, msg.Text, true, msg.ImageBlob)
+			"INSERT INTO messages (user_name, initials, text, new, blob, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+			msg.UserName, msg.Initials, msg.Text, true, msg.ImageBlob, msg.CreatedAt)
 	} else {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, initials, text, new) VALUES ($1, $2, $3, $4)",
-			msg.UserName, msg.Initials, msg.Text, true)
+			"INSERT INTO messages (user_name, initials, text, new, created_at) VALUES ($1, $2, $3, $4, $5)",
+			msg.UserName, msg.Initials, msg.Text, true, msg.CreatedAt)
 	}
 
 	return err
@@ -70,16 +70,6 @@ func (this T_Messages) DeleteMessages(count int) error {
 func (this T_Messages) DeleteMessagesByUserName(userName string) error {
 	_, err := this.conn.Exec("DELETE FROM messages WHERE user_name = $1;", userName)
 	return err
-}
-
-func (this T_Messages) CheckMessagesCount(fromTimestamp string) (int, error) {
-	var count int
-	err := this.conn.QueryRow(`
-		SELECT COUNT(id) FROM messages
-		WHERE created_at > $1;
-	`, fromTimestamp).Scan(&count)
-
-	return count, err
 }
 
 // LIMIT 10

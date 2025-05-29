@@ -26,7 +26,15 @@ func (this *SupportPage) Name() string {
 	return consts.SUPPORT_PAGE
 }
 
+func (this *SupportPage) AllowedOnlyMessages() bool {
+	return false
+}
+
 func (this *SupportPage) RespText(update tgbotapi.Update) string {
+	if this.errResp != "" {
+		return this.errResp
+	}
+
 	return `Sorry to hear you're having trouble 😔. Let me help.
 Can you please provide:
 - A short description of the issue
@@ -35,11 +43,14 @@ Can you please provide:
 - Device & browser (if on web)
 - Screenshot (no more than 1 image per request)
 
-🔧 For faster help, feel free to head to our support Telegram: https://t.me/eobuhow.
+🔧 For faster help, feel free to head to our support Telegram: https://t.me/RubicSupportBot.
 Or describe your problem here — I’ll log this and escalate it to our tech support team.`
 }
 
 func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	if this.errResp != "" {
+		return keyboards.EmptyBoard
+	}
 	return keyboards.SupportPageKeyboard
 }
 

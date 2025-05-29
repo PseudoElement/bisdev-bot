@@ -3,6 +3,7 @@ package bd_bot
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -68,7 +69,7 @@ func NewBuisdevBot() *BuisdevBot {
 
 func (this *BuisdevBot) Listen() {
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = math.MaxInt
 
 	for update := range this.bot.GetUpdatesChan(u) {
 		var userId int64

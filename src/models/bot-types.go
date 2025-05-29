@@ -5,6 +5,7 @@ type JsonMsgFromClient struct {
 	Initials  string
 	Text      string
 	ImageBlob []byte
+	CreatedAt string
 }
 
 type MsgFromClientForLog struct {

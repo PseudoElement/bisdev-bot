@@ -62,7 +62,7 @@ func (this *AdminCountOfReceivedMsgsPage) ActionOnInit(update tgbotapi.Update) {
 	}
 
 	sqlTimestamp := utils.GetSqlTimestampByMinutesUTC(minsCountAgo, true)
-	msgCount, err := this.db.Tables().Messages.CheckMessagesCount(sqlTimestamp)
+	msgCount, err := this.db.Tables().MessagesCount.CheckMessagesCount(sqlTimestamp)
 	if err != nil {
 		log.Println("[AdminCountOfReceivedMsgsPage_ActionOnInit] CheckMessagesCount_err ==>", err)
 		this.setErrorResp("Server error.")
