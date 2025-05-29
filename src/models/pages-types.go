@@ -12,6 +12,8 @@ type IPage interface {
 	Name() string
 
 	AllowedOnlyCommands() bool
+
+	AllowedOnlyMessages() bool
 }
 
 type IPageWithKeyboard interface {

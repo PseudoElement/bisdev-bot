@@ -37,6 +37,7 @@ Can you share the following:
 - Website
 - Your role
 - Your main goal with us? (integration / liquidity aggregation / mutual routing / co-marketing / other)
+- Screenshot (no more than 1 image per request)
 
 Once you're done, I’ll share this with our BD team and we’ll follow up fast.  `
 }

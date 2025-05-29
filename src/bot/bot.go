@@ -174,27 +174,33 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 	userId := update.CallbackQuery.From.ID
 
-	pageWithActionOnDestr, ok := this.pages[userId].(models.IPageWithActionOnDestroy)
-	if ok {
-		pageWithActionOnDestr.ActionOnDestroy(update)
+	if this.pages[userId].AllowedOnlyMessages() {
+		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Commands are not allowed for response here.")
+
+		go this.bot.Send(msg)
+	} else {
+		pageWithActionOnDestr, ok := this.pages[userId].(models.IPageWithActionOnDestroy)
+		if ok {
+			pageWithActionOnDestr.ActionOnDestroy(update)
+		}
+
+		nextPage := this.pages[userId].NextPage(update, this.isAdmin(userId))
+		nextPageWithActionOnInit, ok := nextPage.(models.IPageWithActionOnInit)
+		if ok {
+			nextPageWithActionOnInit.ActionOnInit(update)
+		}
+
+		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, nextPage.RespText(update))
+
+		nextPageWithKB, ok := nextPage.(models.IPageWithKeyboard)
+		if ok {
+			msg.ReplyMarkup = nextPageWithKB.Keyboard()
+		}
+
+		this.pages[userId] = nextPage
+
+		go this.bot.Send(msg)
 	}
-
-	nextPage := this.pages[userId].NextPage(update, this.isAdmin(userId))
-	nextPageWithActionOnInit, ok := nextPage.(models.IPageWithActionOnInit)
-	if ok {
-		nextPageWithActionOnInit.ActionOnInit(update)
-	}
-
-	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, nextPage.RespText(update))
-
-	nextPageWithKB, ok := nextPage.(models.IPageWithKeyboard)
-	if ok {
-		msg.ReplyMarkup = nextPageWithKB.Keyboard()
-	}
-
-	this.pages[userId] = nextPage
-
-	go this.bot.Send(msg)
 }
 
 func (this *BuisdevBot) isAdmin(userId int64) bool {

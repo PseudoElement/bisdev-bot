@@ -31,7 +31,7 @@ func (this *OtherPage) RespText(update tgbotapi.Update) string {
 	}
 
 	return `No problem! Please describe your request in a few words — I’ll make sure it reaches the right person on our team.
-We aim to reply within 24 hours.`
+We aim to reply within 24 hours(no more than 1 image per request).`
 }
 
 var _ models.IPage = (*OtherPage)(nil)

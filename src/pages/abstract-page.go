@@ -33,6 +33,10 @@ func (this *Page) AllowedOnlyCommands() bool {
 	return false
 }
 
+func (this *Page) AllowedOnlyMessages() bool {
+	return false
+}
+
 func (this *Page) Bot() *tgbotapi.BotAPI {
 	return this.bot
 }

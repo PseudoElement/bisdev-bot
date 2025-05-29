@@ -5,6 +5,7 @@ import (
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
@@ -19,6 +20,10 @@ func NewAbstrUserInputPage(page *Page) *AbstrUserInputPage {
 	}
 
 	return p
+}
+
+func (this *AbstrUserInputPage) AllowedOnlyMessages() bool {
+	return true
 }
 
 func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
@@ -37,18 +42,35 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	}
 
 	doc := update.Message.Document
-	if doc != nil && (doc.MimeType == "image/jpeg" || doc.MimeType == "image/png") {
-		fileId := update.Message.Document.FileID
-		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-		if err != nil {
-			log.Printf("[%s_ActionOnDestroy] Document_ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
+	if doc != nil {
+		if doc.MimeType == "image/jpeg" || doc.MimeType == "image/png" {
+			if doc.FileSize > consts.MB_5 {
+				this.setErrorResp("Too large file. Max size is 5mb.")
+				return
+			}
+
+			fileId := update.Message.Document.FileID
+			buf, err := utils.ReadUploadedFile(this.bot, fileId)
+			if err != nil {
+				log.Printf("[%s_ActionOnDestroy] Document_ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
+			}
+
+			dbMsg.ImageBlob = buf
+		} else {
+			this.setErrorResp(doc.MimeType + " file format is not supported.")
+			return
 		}
 
-		dbMsg.ImageBlob = buf
 	}
 	if update.Message.Photo != nil {
 		photoSizes := update.Message.Photo
-		fileId := photoSizes[len(photoSizes)-1].FileID
+		bestQualityPic := photoSizes[len(photoSizes)-1]
+		if bestQualityPic.FileSize > consts.MB_5 {
+			this.setErrorResp("Too large picture. Max size is 5mb.")
+			return
+		}
+
+		fileId := bestQualityPic.FileID
 		buf, err := utils.ReadUploadedFile(this.bot, fileId)
 		if err != nil {
 			log.Printf("[%s_ActionOnDestroy] ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
@@ -56,6 +78,8 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 
 		dbMsg.ImageBlob = buf
 	}
+
+	this.setErrorResp("")
 
 	go func() {
 		err := this.db.Tables().Messages.AddMessage(dbMsg)
