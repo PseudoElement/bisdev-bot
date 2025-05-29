@@ -7,7 +7,8 @@ type DB_UserMessage struct {
 	Initials  string
 	Text      string
 	New       bool
-	ImgBlob   []byte
+	Blob      []byte
+	BlobType  string
 }
 
 type DB_UserNames struct {

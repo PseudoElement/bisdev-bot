@@ -26,7 +26,7 @@ func NewSqliteDB() *SqliteDB {
 
 	db.tables = models.Tables{
 		Messages:      t_messages.NewTableMessages(conn),
-		MessagesCount: t_msgs_count.NewTablePinnedFiles(conn),
+		MessagesCount: t_msgs_count.NewTableMessagesCount(conn),
 	}
 
 	err = db.tables.Messages.CreateTable()

@@ -3,7 +3,6 @@ package t_msgs_count
 import (
 	"database/sql"
 
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 )
 
@@ -11,7 +10,7 @@ type T_MessagesCount struct {
 	conn *sql.DB
 }
 
-func NewTablePinnedFiles(conn *sql.DB) models.ITableMessagesCount {
+func NewTableMessagesCount(conn *sql.DB) models.ITableMessagesCount {
 	return T_MessagesCount{conn: conn}
 }
 
@@ -20,7 +19,7 @@ func (this T_MessagesCount) CreateTable() error {
 		`CREATE TABLE IF NOT EXISTS messages_count (
             id INTEGER NOT NULL PRIMARY KEY,
             created_at TMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );`, consts.FILE_TYPES.Image, consts.FILE_TYPES.Document,
+        );`,
 	)
 
 	return err

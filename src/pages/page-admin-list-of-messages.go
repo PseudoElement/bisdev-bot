@@ -15,7 +15,6 @@ import (
 
 type AdminListOfMessagesPage struct {
 	*Page
-	respText string
 	messages []models.DB_UserMessage
 }
 
@@ -26,7 +25,6 @@ func NewAdminListOfMessagesPage(
 ) *AdminListOfMessagesPage {
 	p := &AdminListOfMessagesPage{
 		Page:     NewPage(db, bot, adminQueryBuilder),
-		respText: "",
 		messages: make([]models.DB_UserMessage, 0, 5),
 	}
 	p.setCurrenPage(p)

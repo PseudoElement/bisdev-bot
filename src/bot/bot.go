@@ -152,6 +152,7 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 			nextPageWithActionOnInit, withOnInit := nextPage.(models.IPageWithActionOnInit)
 			nextPageWithKeyboard, withKeyboard := nextPage.(models.IPageWithKeyboard)
 			nextPageWithPhotos, withPhotosInResp := nextPage.(models.IPageWithPhotos)
+			nextPageWithFiles, withFilesInResp := nextPage.(models.IPageWithFiles)
 
 			if withOnInit {
 				nextPageWithActionOnInit.ActionOnInit(update)
@@ -165,6 +166,9 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 				this.bot.Send(msg)
 				if withPhotosInResp && nextPageWithPhotos.HasPhotos() {
 					this.bot.SendMediaGroup(nextPageWithPhotos.PhotosResp(update))
+				}
+				if withFilesInResp && nextPageWithFiles.HasFiles() {
+					this.bot.SendMediaGroup(nextPageWithFiles.FilesResp(update))
 				}
 			}()
 

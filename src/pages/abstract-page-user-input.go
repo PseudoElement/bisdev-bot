@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
@@ -48,7 +49,7 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	doc := update.Message.Document
 	if doc != nil {
-		if doc.MimeType == "image/jpeg" || doc.MimeType == "image/png" {
+		if this.isSupportedMimetype(doc) {
 			if doc.FileSize > consts.MB_5 {
 				this.setErrorResp("Too large file. Max size is 5mb.")
 				return
@@ -60,7 +61,8 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 				log.Printf("[%s_ActionOnDestroy] Document_ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
 			}
 
-			dbMsg.ImageBlob = buf
+			dbMsg.Blob = buf
+			dbMsg.BlobType = utils.MimeTypeToSqlBlobType(doc.MimeType)
 		} else {
 			this.setErrorResp(doc.MimeType + " file format is not supported.")
 			return
@@ -81,7 +83,9 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 			log.Printf("[%s_ActionOnDestroy] ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
 		}
 
-		dbMsg.ImageBlob = buf
+		dbMsg.Blob = buf
+		// @TODO check if need handle different image extensions
+		dbMsg.BlobType = consts.FILE_TYPES.Png
 	}
 
 	this.setErrorResp("")
@@ -96,4 +100,13 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)
 		}
 	}()
+}
+
+func (this *AbstrUserInputPage) isSupportedMimetype(doc *tgbotapi.Document) bool {
+	for _, t := range consts.SUPPORTED_MIME_TYPES {
+		if strings.ToLower(t) == strings.ToLower(doc.MimeType) {
+			return true
+		}
+	}
+	return false
 }

@@ -4,15 +4,17 @@ type JsonMsgFromClient struct {
 	UserName  string
 	Initials  string
 	Text      string
-	ImageBlob []byte
+	BlobType  string
+	Blob      []byte
 	CreatedAt string
 }
 
 type MsgFromClientForLog struct {
-	UserName     string
-	Initials     string
-	Text         string
-	ImageBlobLen int
+	UserName string
+	Initials string
+	Text     string
+	BlobLen  int
+	BlobType string
 }
 
 type MessagesReq struct {

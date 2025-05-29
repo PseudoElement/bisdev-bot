@@ -10,16 +10,18 @@ import (
 )
 
 func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
-	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Initials, msg.Text, len(msg.ImageBlob)})
+	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Initials, msg.Text, len(msg.Blob), msg.BlobType})
 
 	var err error
-	if msg.ImageBlob != nil && len(msg.ImageBlob) > 0 {
+	if msg.Blob != nil && len(msg.Blob) > 0 {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, initials, text, new, blob, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
-			msg.UserName, msg.Initials, msg.Text, true, msg.ImageBlob, msg.CreatedAt)
+			`INSERT INTO messages (user_name, initials, text, new, blob_type, blob, created_at) 
+			VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+			msg.UserName, msg.Initials, msg.Text, true, msg.BlobType, msg.Blob, msg.CreatedAt)
 	} else {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, initials, text, new, created_at) VALUES ($1, $2, $3, $4, $5)",
+			`INSERT INTO messages (user_name, initials, text, new, created_at) 
+			VALUES ($1, $2, $3, $4, $5);`,
 			msg.UserName, msg.Initials, msg.Text, true, msg.CreatedAt)
 	}
 
@@ -88,7 +90,7 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.BlobType, &msg.Blob, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
@@ -109,7 +111,7 @@ func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 		AlreadyRead: make([]string, 0, 10),
 	}
 
-	query := "SELECT * FROM messages;"
+	query := "SELECT user_name, new FROM messages;"
 	rows, err := this.conn.Query(query)
 	if err != nil {
 		return userNames, err
@@ -118,7 +120,7 @@ func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.ImgBlob, &msg.CreatedAt)
+		err := rows.Scan(&msg.UserName, &msg.New)
 		if err != nil {
 			return userNames, err
 		}

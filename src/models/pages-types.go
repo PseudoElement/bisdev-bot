@@ -41,3 +41,11 @@ type IPageWithPhotos interface {
 
 	HasPhotos() bool
 }
+
+type IPageWithFiles interface {
+	IPage
+
+	FilesResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig
+
+	HasFiles() bool
+}

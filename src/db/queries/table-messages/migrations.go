@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 )
 
@@ -17,16 +18,17 @@ func NewTableMessages(conn *sql.DB) models.ITableMessages {
 
 // UP
 func (this T_Messages) CreateTable() error {
-	_, err := this.conn.Exec(
+	_, err := this.conn.Exec(fmt.Sprintf(
 		`CREATE TABLE IF NOT EXISTS messages (
             id INTEGER NOT NULL PRIMARY KEY,
             user_name VARCHAR(50) NOT NULL,
 			initials VARCHAR(50) NOT NULL,
             text TEXT NOT NULL,
             new BOOLEAN NOT NULL,
+			blob_type VARCHAR(50) CHECK(blob_type IN ('%s', '%s', '%s', '%s', '%s', '%s', '')) DEFAULT '',
 			blob BLOB,
             created_at TMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );`,
+        );`, consts.FILE_TYPES.Doc, consts.FILE_TYPES.Csv, consts.FILE_TYPES.Txt, consts.FILE_TYPES.Pdf, consts.FILE_TYPES.Jpeg, consts.FILE_TYPES.Png),
 	)
 
 	return err

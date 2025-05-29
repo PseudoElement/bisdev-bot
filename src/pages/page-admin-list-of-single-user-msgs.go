@@ -16,7 +16,6 @@ import (
 
 type AdminListOfSingleUserMsgsPage struct {
 	*Page
-	respText string
 	messages []models.DB_UserMessage
 }
 
@@ -27,7 +26,6 @@ func NewAdminListOfSingleUserMsgsPage(
 ) *AdminListOfSingleUserMsgsPage {
 	p := &AdminListOfSingleUserMsgsPage{
 		Page:     NewPage(db, bot, adminQueryBuilder),
-		respText: "",
 		messages: make([]models.DB_UserMessage, 0, 5),
 	}
 	p.setCurrenPage(p)
@@ -41,7 +39,17 @@ func (this *AdminListOfSingleUserMsgsPage) Name() string {
 
 func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 	for _, msg := range this.messages {
-		if msg.ImgBlob != nil && len(msg.ImgBlob) > 0 {
+		if msg.BlobType == consts.FILE_TYPES.Image && msg.Blob != nil && len(msg.Blob) > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (this *AdminListOfSingleUserMsgsPage) HasFiles() bool {
+	for _, msg := range this.messages {
+		if msg.BlobType == consts.FILE_TYPES.Document && msg.Blob != nil && len(msg.Blob) > 0 {
 			return true
 		}
 	}
@@ -72,6 +80,31 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 	return str.String()
 }
 
+func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig {
+	files := make([]interface{}, 0, len(this.messages))
+
+	idx := 1
+	for _, msg := range this.messages {
+		// 10 files max
+		if idx > 10 {
+			break
+		}
+
+		if msg.BlobType == consts.FILE_TYPES.Document && msg.Blob != nil && len(msg.Blob) > 0 {
+			buf := msg.Blob
+			fileName := "file_" + strconv.Itoa(idx) + "." + msg.BlobType
+			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
+			files = append(files, tgbotapi.NewInputMediaDocument(fileBytes))
+		}
+
+		idx++
+	}
+
+	filesMG := tgbotapi.NewMediaGroup(update.Message.Chat.ID, files)
+
+	return filesMG
+}
+
 // @TODO handle more than 10 photos in resp
 func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig {
 	photos := make([]interface{}, 0, len(this.messages))
@@ -83,9 +116,9 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) tg
 			break
 		}
 
-		if msg.ImgBlob != nil && len(msg.ImgBlob) > 0 {
-			buf := msg.ImgBlob
-			fileName := "img_" + strconv.Itoa(idx) + ".png"
+		if msg.BlobType == consts.FILE_TYPES.Image && msg.Blob != nil && len(msg.Blob) > 0 {
+			buf := msg.Blob
+			fileName := "img_" + strconv.Itoa(idx) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
 			photos = append(photos, tgbotapi.NewInputMediaPhoto(fileBytes))
 		}
@@ -129,3 +162,4 @@ func (this *AdminListOfSingleUserMsgsPage) NextPage(update tgbotapi.Update, isAd
 var _ models.IPageWithKeyboard = (*AdminListOfSingleUserMsgsPage)(nil)
 var _ models.IPageWithActionOnInit = (*AdminListOfSingleUserMsgsPage)(nil)
 var _ models.IPageWithPhotos = (*AdminListOfSingleUserMsgsPage)(nil)
+var _ models.IPageWithFiles = (*AdminListOfSingleUserMsgsPage)(nil)
