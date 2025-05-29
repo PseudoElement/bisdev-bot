@@ -134,8 +134,8 @@ func (this *BuisdevBot) Listen() {
 		}
 
 		if update.Message != nil {
-			fmt.Printf("[%s] text - %s, caption - %s, command - %s, photos_count - %d.\n",
-				update.Message.From.UserName, update.Message.Text, update.Message.Caption, update.Message.Command(), len(update.Message.Photo),
+			fmt.Printf("[%s][%s %s] text - %s,  caption - %s, command - %s, photos_count - %d.\n",
+				update.Message.From.UserName, update.Message.From.FirstName, update.Message.From.LastName, update.Message.Text, update.Message.Caption, update.Message.Command(), len(update.Message.Photo),
 			)
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			userId := update.Message.From.ID
@@ -191,7 +191,12 @@ func (this *BuisdevBot) Listen() {
 				}
 			}
 		} else if update.CallbackQuery != nil && update.CallbackData() != this.lastCommand {
-			fmt.Printf("[%s] Data - %s\n", update.CallbackQuery.From.UserName, update.CallbackData())
+			fmt.Printf("[%s][%s %s] Data - %s\n",
+				update.CallbackQuery.From.UserName,
+				update.CallbackQuery.From.FirstName,
+				update.CallbackQuery.From.LastName,
+				update.CallbackData(),
+			)
 			this.lastCommand = update.CallbackData()
 			userId := update.CallbackQuery.From.ID
 
