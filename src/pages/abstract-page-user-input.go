@@ -57,11 +57,10 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		dbMsg.ImageBlob = buf
 	}
 
-	err := this.db.Tables().Messages.AddMessage(dbMsg)
-	if err != nil {
-		log.Println("[IssueDescriptionPage_ActionOnDestroy] AddMessage err ==> ", err)
-		this.setErrorResp("Error on server side trying to save your message. Try to contact support directly: https://t.me/eobuhow.")
-	} else {
-		this.setErrorResp("")
-	}
+	go func() {
+		err := this.db.Tables().Messages.AddMessage(dbMsg)
+		if err != nil {
+			log.Println("[IssueDescriptionPage_ActionOnDestroy] AddMessage err ==> ", err)
+		}
+	}()
 }
