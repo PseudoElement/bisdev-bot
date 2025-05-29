@@ -19,8 +19,8 @@ func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
 			msg.UserName, msg.Initials, msg.Text, true, msg.ImageBlob)
 	} else {
 		_, err = this.conn.Exec(
-			"INSERT INTO messages (user_name, text, new) VALUES ($1, $2, $3)",
-			msg.UserName, msg.Text, true)
+			"INSERT INTO messages (user_name, initials, text, new) VALUES ($1, $2, $3, $4)",
+			msg.UserName, msg.Initials, msg.Text, true)
 	}
 
 	return err

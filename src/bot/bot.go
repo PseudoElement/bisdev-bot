@@ -53,10 +53,9 @@ func NewBuisdevBot() *BuisdevBot {
 	adminQueryBuilder := query_builder.NewAdminQueryBuilder()
 
 	b := &BuisdevBot{
-		bot:    bot,
-		isProd: isProd,
-		pages:  make(map[int64]models.IPage, 10),
-		// page:              pages.NewStartPage(db, bot, adminQueryBuilder),
+		bot:               bot,
+		isProd:            isProd,
+		pages:             make(map[int64]models.IPage, 10),
 		admins:            admins,
 		lastCommand:       "",
 		db:                db,
