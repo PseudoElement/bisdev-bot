@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
@@ -174,7 +175,7 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 	userId := update.CallbackQuery.From.ID
 
-	if this.pages[userId].AllowedOnlyMessages() {
+	if this.pages[userId].AllowedOnlyMessages() && update.CallbackData() != consts.BACK_TO_START {
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Commands are not allowed for response here.")
 
 		go this.bot.Send(msg)

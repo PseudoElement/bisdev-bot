@@ -37,6 +37,10 @@ func (this *AdminInputUserNamePage) Name() string {
 	return consts.ADMIN_INPUT_USER_NAME_PAGE
 }
 
+func (this *AdminInputUserNamePage) AllowedOnlyMessages() bool {
+	return true
+}
+
 func (this *AdminInputUserNamePage) RespText(update tgbotapi.Update) string {
 	log.Println()
 	if this.errResp != "" {
