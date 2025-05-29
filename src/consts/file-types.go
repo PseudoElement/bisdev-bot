@@ -27,3 +27,15 @@ var SUPPORTED_MIME_TYPES = [6]string{
 	"text/plain",
 	"text/csv",
 }
+
+var IMAGES_FILE_TYPES = [2]string{
+	FILE_TYPES.Jpeg,
+	FILE_TYPES.Png,
+}
+
+var DOC_FILE_TYPES = [4]string{
+	FILE_TYPES.Doc,
+	FILE_TYPES.Csv,
+	FILE_TYPES.Txt,
+	FILE_TYPES.Pdf,
+}

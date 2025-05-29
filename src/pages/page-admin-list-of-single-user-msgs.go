@@ -39,7 +39,7 @@ func (this *AdminListOfSingleUserMsgsPage) Name() string {
 
 func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 	for _, msg := range this.messages {
-		if msg.BlobType == consts.FILE_TYPES.Image && msg.Blob != nil && len(msg.Blob) > 0 {
+		if this.isImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			return true
 		}
 	}
@@ -49,7 +49,7 @@ func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 
 func (this *AdminListOfSingleUserMsgsPage) HasFiles() bool {
 	for _, msg := range this.messages {
-		if msg.BlobType == consts.FILE_TYPES.Document && msg.Blob != nil && len(msg.Blob) > 0 {
+		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			return true
 		}
 	}
@@ -90,7 +90,7 @@ func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) tgb
 			break
 		}
 
-		if msg.BlobType == consts.FILE_TYPES.Document && msg.Blob != nil && len(msg.Blob) > 0 {
+		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
 			fileName := "file_" + strconv.Itoa(idx) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
@@ -116,7 +116,7 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) tg
 			break
 		}
 
-		if msg.BlobType == consts.FILE_TYPES.Image && msg.Blob != nil && len(msg.Blob) > 0 {
+		if this.isImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
 			fileName := "img_" + strconv.Itoa(idx) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
@@ -157,6 +157,24 @@ func (this *AdminListOfSingleUserMsgsPage) NextPage(update tgbotapi.Update, isAd
 		return this
 	}
 	return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+}
+
+func (this *AdminListOfSingleUserMsgsPage) isImg(blobType string) bool {
+	for _, t := range consts.IMAGES_FILE_TYPES {
+		if t == blobType {
+			return true
+		}
+	}
+	return false
+}
+
+func (this *AdminListOfSingleUserMsgsPage) isDoc(blobType string) bool {
+	for _, t := range consts.DOC_FILE_TYPES {
+		if t == blobType {
+			return true
+		}
+	}
+	return false
 }
 
 var _ models.IPageWithKeyboard = (*AdminListOfSingleUserMsgsPage)(nil)

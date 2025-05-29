@@ -30,6 +30,7 @@ func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
 
 func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMessage, error) {
 	messages := make([]models.DB_UserMessage, 0, req.Count)
+	hasNewMsgs := false
 
 	query := "SELECT id, user_name, initials, text, new, created_at FROM messages "
 	if req.NewOnly {
@@ -50,11 +51,14 @@ func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMess
 		if err != nil {
 			return messages, err
 		}
+		if msg.New {
+			hasNewMsgs = true
+		}
 
 		messages = append(messages, msg)
 	}
 
-	if len(messages) > 0 {
+	if len(messages) > 0 && hasNewMsgs {
 		go this.markMessagesAsRead(messages)
 	}
 
@@ -77,6 +81,7 @@ func (this T_Messages) DeleteMessagesByUserName(userName string) error {
 // LIMIT 10
 func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserMessage, error) {
 	messages := make([]models.DB_UserMessage, 0, 5)
+	hasNewMsgs := false
 
 	rows, err := this.conn.Query(`
 		SELECT * FROM messages WHERE user_name = $1 
@@ -94,11 +99,14 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 		if err != nil {
 			return messages, err
 		}
+		if msg.New {
+			hasNewMsgs = true
+		}
 
 		messages = append(messages, msg)
 	}
 
-	if len(messages) > 0 {
+	if len(messages) > 0 && hasNewMsgs {
 		go this.markMessagesAsRead(messages)
 	}
 
