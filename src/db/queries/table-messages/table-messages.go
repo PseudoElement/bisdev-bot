@@ -73,15 +73,11 @@ func (this T_Messages) DeleteMessagesByUserName(userName string) error {
 }
 
 func (this T_Messages) CheckMessagesCount(fromTimestamp string) (int, error) {
-	log.Println("[T_Messsages_CheckMessagesCount] fromTimestamp ==>", fromTimestamp)
-
 	var count int
 	err := this.conn.QueryRow(`
 		SELECT COUNT(id) FROM messages
 		WHERE created_at > $1;
 	`, fromTimestamp).Scan(&count)
-
-	log.Println("[T_Messsages_CheckMessagesCount] count ==>", count)
 
 	return count, err
 }
@@ -146,9 +142,6 @@ func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {
 
 	userNames.AlreadyRead = utils.FilterUnique(userNames.AlreadyRead)
 	userNames.NotRead = utils.FilterUnique(userNames.NotRead)
-
-	log.Println("userNames.AlreadyRead ==> ", len(userNames.AlreadyRead))
-	log.Println("userNames.NotRead ==> ", len(userNames.NotRead))
 
 	return userNames, nil
 }
