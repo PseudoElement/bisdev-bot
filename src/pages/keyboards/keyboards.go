@@ -116,6 +116,12 @@ var (
 				consts.BLOCK_USER,
 			),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"💫 Unblock user",
+				consts.UNBLOCK_USER,
+			),
+		),
 	)
 
 	AdminSelectTimeForMsgCountPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(

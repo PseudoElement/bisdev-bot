@@ -48,6 +48,8 @@ type ITableBlockedUsers interface {
 
 	BlockUser(userName string) error
 
+	UnblockUser(userName string) error
+
 	GetBlockedUsers() ([]Db_BlockedUser, error)
 }
 

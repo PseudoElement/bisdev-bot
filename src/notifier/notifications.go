@@ -11,3 +11,8 @@ type NotificationBlockUser struct {
 	BlockedUserName string
 	AdminUserName   string
 }
+
+type NotificationUnblockUser struct {
+	UnblockedUserName string
+	AdminUserName     string
+}

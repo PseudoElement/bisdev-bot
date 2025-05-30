@@ -47,6 +47,18 @@ func (this T_BlockedUsers) BlockUser(userName string) error {
 	return err
 }
 
+func (this T_BlockedUsers) UnblockUser(userName string) error {
+	res, err := this.conn.Exec(`DELETE FROM blocked_users WHERE user_name = $1;`, userName)
+	if err != nil {
+		log.Println("[T_BlockedUsers_UnblockUser] Exec_err ==>", err)
+	}
+
+	count, _ := res.RowsAffected()
+	log.Println("[T_BlockedUsers_BlockUser] unblocked_count ==>", count)
+
+	return err
+}
+
 func (this T_BlockedUsers) GetBlockedUsers() ([]models.Db_BlockedUser, error) {
 	blockedUsers := make([]models.Db_BlockedUser, 0, 5)
 

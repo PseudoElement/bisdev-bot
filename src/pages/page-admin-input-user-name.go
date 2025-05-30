@@ -54,6 +54,8 @@ func (this *AdminInputUserNamePage) RespText(update tgbotapi.Update) string {
 			return this.respForShowMessages(update)
 		} else if this.commandName == consts.BLOCK_USER {
 			return this.respForBlockUser(update)
+		} else if this.commandName == consts.UNBLOCK_USER {
+			return this.respForUnblockUser(update)
 		} else {
 			return this.respForDeletion(update)
 		}
@@ -71,10 +73,14 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 			if this.commandName == consts.DELETE_MESSAGES_OF_USER {
 				go this.onDestroyDeleteMsgsOfUser(update)
 			}
+			if this.commandName == consts.UNBLOCK_USER {
+				go this.onDestroyUnblockUser(update)
+			}
 			if this.commandName == consts.BLOCK_USER {
 				// not in goroutine cause need check if user is admin
 				this.onDestroyBlockUser(update)
 			}
+
 			return
 		}
 	}
@@ -85,17 +91,30 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 
 func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
 	if len(this.userNames.AlreadyRead) == 0 && len(this.userNames.NotRead) == 0 {
-		userNames, err := this.injector.Db.Tables().Messages.GetUserNames()
-		if err != nil {
-			log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
-			this.setErrorResp("Server error.")
-			return
-		}
-		this.userNames = userNames
-
 		if update.CallbackData() != "" {
 			this.commandName = this.TextFromClient(update)
 		}
+
+		if this.commandName == consts.UNBLOCK_USER {
+			blockedUsers := this.injector.Store.GetBlockedUsers()
+			if len(blockedUsers) < 1 {
+				this.setWarningResp("Blacklist is empty. There is no one to unblock.")
+				return
+			}
+
+			for _, blockedUser := range blockedUsers {
+				this.userNames.AlreadyRead = append(this.userNames.AlreadyRead, blockedUser.UserName)
+			}
+		} else {
+			userNames, err := this.injector.Db.Tables().Messages.GetUserNames()
+			if err != nil {
+				log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
+				this.setErrorResp("Server error.")
+				return
+			}
+			this.userNames = userNames
+		}
+
 	}
 
 }
@@ -156,6 +175,15 @@ func (this *AdminInputUserNamePage) respForBlockUser(update tgbotapi.Update) str
 	return str.String()
 }
 
+func (this *AdminInputUserNamePage) respForUnblockUser(update tgbotapi.Update) string {
+	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
+	uniqueNames := utils.FilterUnique(allUserNames)
+	str := bytes.NewBufferString("Input username you want to unblock from the blacklist below:\n\n")
+	str.WriteString(strings.Join(uniqueNames, ", "))
+
+	return str.String()
+}
+
 // here userName 100% existing
 func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
 	userName := this.TextFromClient(update)
@@ -170,8 +198,21 @@ func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
 		if err != nil {
 			log.Println("[AdminInputUserNamePage_onDestroyBlockUser] BlockUser_err ==>", err)
 		}
+		this.injector.Notifier.NotifyAdminsOnBlockedUsers(userName, this.UserName(update))
 		this.injector.Store.UpdateBlockedUsersList()
 	}()
+
+	this.setErrorResp("")
+}
+
+// here userName 100% existing
+func (this *AdminInputUserNamePage) onDestroyUnblockUser(update tgbotapi.Update) {
+	userName := this.TextFromClient(update)
+	err := this.injector.Db.Tables().BlockedUsers.UnblockUser(userName)
+	if err != nil {
+		log.Println("[AdminInputUserNamePage_onDestroyUnblockUser] UnblockUser_err ==>", err)
+	}
+	this.injector.Notifier.NotifyAdminsOnUnblockedUsers(userName, this.UserName(update))
 
 	this.setErrorResp("")
 }

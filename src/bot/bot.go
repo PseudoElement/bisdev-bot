@@ -118,7 +118,11 @@ func (this *BuisdevBot) ListenNotifier() {
 	for note := range this.injector.Notifier.Chan() {
 		switch note.(type) {
 		case notifier.NotificationBlockUser:
-			// v := note.(notifier.NotificationBlockUser)
+			v := note.(notifier.NotificationBlockUser)
+			go this.sendBlockInfoToAdmins(v)
+		case notifier.NotificationUnblockUser:
+			v := note.(notifier.NotificationUnblockUser)
+			go this.sendUnblockInfoToAdmins(v)
 		case notifier.NotificationNewMessage:
 			v := note.(notifier.NotificationNewMessage)
 			go this.sendNewMessageToAdmins(v)
@@ -273,9 +277,25 @@ func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMess
 			text += "Contains pinned files, to see files - load messages of this user via **👤 Show messages of specific user**.\n"
 		}
 		text += "Message:\n" + note.Text
-
 		msg := tgbotapi.NewMessage(admin.ChatId, text)
-		// msg.ParseMode = "HTML"
+
+		this.bot.Send(msg)
+	}
+}
+
+func (this *BuisdevBot) sendBlockInfoToAdmins(note notifier.NotificationBlockUser) {
+	for _, admin := range this.injector.Store.GetAdmins() {
+		text := fmt.Sprintf("🚷 %s blocked user %s.", note.AdminUserName, note.BlockedUserName)
+		msg := tgbotapi.NewMessage(admin.ChatId, text)
+
+		this.bot.Send(msg)
+	}
+}
+
+func (this *BuisdevBot) sendUnblockInfoToAdmins(note notifier.NotificationUnblockUser) {
+	for _, admin := range this.injector.Store.GetAdmins() {
+		text := fmt.Sprintf("💫 %s unblocked user %s.", note.AdminUserName, note.UnblockedUserName)
+		msg := tgbotapi.NewMessage(admin.ChatId, text)
 
 		this.bot.Send(msg)
 	}

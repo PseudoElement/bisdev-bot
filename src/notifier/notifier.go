@@ -27,6 +27,10 @@ func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgFromClient) {
 	}
 }
 
-func (this *Notifier) NotifyAdminsOnBlockedUsers(userName string) {
-	this.notificationChan <- NotificationNewMessage{FromUserName: userName}
+func (this *Notifier) NotifyAdminsOnBlockedUsers(userName string, adminName string) {
+	this.notificationChan <- NotificationBlockUser{BlockedUserName: userName, AdminUserName: adminName}
+}
+
+func (this *Notifier) NotifyAdminsOnUnblockedUsers(userName string, adminName string) {
+	this.notificationChan <- NotificationUnblockUser{UnblockedUserName: userName, AdminUserName: adminName}
 }

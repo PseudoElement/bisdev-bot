@@ -141,7 +141,7 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 
 		case consts.SHOW_MESSAGES:
 			return NewAdminSelectOldOrNewMsgsPage(this.injector)
-		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER, consts.BLOCK_USER:
+		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER, consts.BLOCK_USER, consts.UNBLOCK_USER:
 			return NewAdminInputUserNamePage(this.injector)
 		case consts.CHECK_LINKS:
 			return NewAdminLinksPage(this.injector)
