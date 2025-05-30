@@ -272,7 +272,7 @@ func (this *BuisdevBot) sendTextResponse(update tgbotapi.Update, nextPage models
 
 func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMessage) {
 	for _, admin := range this.injector.Store.GetAdmins() {
-		text := "✉️ New message from " + note.FromInitials + "(login @" + note.FromUserName + ")\n"
+		text := "✉️ New message from " + note.FromInitials + "(@" + note.FromUserName + ")\n"
 		if note.WithFiles {
 			text += "Contains pinned file, to see file - use 👤 Show messages of specific user.\n"
 		}
