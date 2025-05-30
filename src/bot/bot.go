@@ -6,28 +6,26 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/db"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
-	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/store"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type BuisdevBot struct {
-	bot               *tgbotapi.BotAPI
-	db                *db.SqliteDB
-	isProd            bool
-	lastCommand       string
-	admins            []string
-	adminQueryBuilder *query_builder.AdminQueryBuilder
+	bot *tgbotapi.BotAPI
+	// db                *db.SqliteDB
+	isProd      bool
+	lastCommand string
+	// admins            []string
+	// adminQueryBuilder *query_builder.AdminQueryBuilder
 	// key is userId
 	pages map[int64]models.IPage
-	store *store.Store
+	// store    *store.Store
+	injector *injector.AppInjector
 }
 
 func NewBuisdevBot() *BuisdevBot {
@@ -45,27 +43,22 @@ func NewBuisdevBot() *BuisdevBot {
 	if err != nil {
 		panic("IS_PROD variable supposed to be true of false.")
 	}
-	adminsString, ok := os.LookupEnv("ADMINS")
-	if !ok {
-		adminsString = ""
-	}
 
 	bot.Debug = !isProd
 
-	db := db.NewSqliteDB()
-	adminQueryBuilder := query_builder.NewAdminQueryBuilder()
-	admins := strings.Split(adminsString, " ")
-	store := store.NewStore(db)
+	// db := db.NewSqliteDB()
+	// adminQueryBuilder := query_builder.NewAdminQueryBuilder()
+	// admins := strings.Split(adminsString, " ")
+	// store := store.NewStore(db)
+
+	injector := injector.NewAppInjector(bot)
 
 	b := &BuisdevBot{
-		bot:               bot,
-		isProd:            isProd,
-		pages:             make(map[int64]models.IPage, 10),
-		admins:            admins,
-		lastCommand:       "",
-		db:                db,
-		adminQueryBuilder: adminQueryBuilder,
-		store:             store,
+		bot:         bot,
+		isProd:      isProd,
+		pages:       make(map[int64]models.IPage, 10),
+		lastCommand: "",
+		injector:    injector,
 	}
 
 	return b
@@ -84,17 +77,17 @@ func (this *BuisdevBot) Listen() {
 			userId = update.CallbackQuery.From.ID
 		}
 
-		if this.isBlockedUser(userId) {
+		if this.isBlockedUser(userId) && !this.injector.Store.IsAdminById(userId) {
 			this.handleBlockedUserRequest(update)
 			continue
 		}
 
 		_, ok := this.pages[userId]
 		if !ok {
-			if this.isAdmin(userId) {
-				this.pages[userId] = pages.NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+			if this.injector.Store.IsAdminById(userId) {
+				this.pages[userId] = pages.NewAdminStartPage(this.injector)
 			} else {
-				this.pages[userId] = pages.NewStartPage(this.db, this.bot, this.adminQueryBuilder)
+				this.pages[userId] = pages.NewStartPage(this.injector)
 			}
 		}
 
@@ -129,13 +122,17 @@ func (this *BuisdevBot) Listen() {
 func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 	userId := update.Message.From.ID
 
+	if this.injector.Store.IsAdminById(userId) {
+		this.injector.Store.SetAdminData(update)
+	}
+
 	switch update.Message.Text {
 	case "/start":
 		this.lastCommand = ""
-		if this.isAdmin(userId) {
-			this.pages[userId] = pages.NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+		if this.injector.Store.IsAdminById(userId) {
+			this.pages[userId] = pages.NewAdminStartPage(this.injector)
 		} else {
-			this.pages[userId] = pages.NewStartPage(this.db, this.bot, this.adminQueryBuilder)
+			this.pages[userId] = pages.NewStartPage(this.injector)
 		}
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
@@ -160,7 +157,7 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 				pageWithActionOnDestr.ActionOnDestroy(update)
 			}
 
-			nextPage := this.pages[userId].NextPage(update, this.isAdmin(userId))
+			nextPage := this.pages[userId].NextPage(update, this.injector.Store.IsAdminById(userId))
 			nextPageWithActionOnInit, withOnInit := nextPage.(models.IPageWithActionOnInit)
 			nextPageWithPhotos, withPhotosInResp := nextPage.(models.IPageWithPhotos)
 			nextPageWithFiles, withFilesInResp := nextPage.(models.IPageWithFiles)
@@ -194,6 +191,10 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 	userId := update.CallbackQuery.From.ID
 
+	if this.injector.Store.IsAdminById(userId) {
+		this.injector.Store.SetAdminData(update)
+	}
+
 	if this.pages[userId].AllowedOnlyMessages() && update.CallbackData() != consts.BACK_TO_START {
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Commands are not allowed for response here.")
 
@@ -205,7 +206,7 @@ func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 			pageWithActionOnDestr.ActionOnDestroy(update)
 		}
 
-		nextPage := this.pages[userId].NextPage(update, this.isAdmin(userId))
+		nextPage := this.pages[userId].NextPage(update, this.injector.Store.IsAdminById(userId))
 		nextPageWithActionOnInit, ok := nextPage.(models.IPageWithActionOnInit)
 		if ok {
 			nextPageWithActionOnInit.ActionOnInit(update)
@@ -250,20 +251,10 @@ func (this *BuisdevBot) sendTextResponse(update tgbotapi.Update, nextPage models
 }
 
 func (this *BuisdevBot) isBlockedUser(userId int64) bool {
-	for _, user := range this.store.GetBlockedUsers() {
+	for _, user := range this.injector.Store.GetBlockedUsers() {
 		if userId == user.UserId {
 			return true
 		}
 	}
-	return false
-}
-
-func (this *BuisdevBot) isAdmin(userId int64) bool {
-	for _, adminId := range this.admins {
-		if strings.ToLower(strconv.Itoa(int(userId))) == strings.ToLower(adminId) {
-			return true
-		}
-	}
-
 	return false
 }

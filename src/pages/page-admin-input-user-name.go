@@ -7,9 +7,9 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
@@ -19,9 +19,9 @@ type AdminInputUserNamePage struct {
 	commandName string
 }
 
-func NewAdminInputUserNamePage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminInputUserNamePage {
+func NewAdminInputUserNamePage(injector *injector.AppInjector) *AdminInputUserNamePage {
 	p := &AdminInputUserNamePage{
-		Page: NewPage(db, bot, adminQueryBuilder),
+		Page: NewPage(injector),
 		userNames: models.DB_UserNames{
 			NotRead:     make([]string, 0, 10),
 			AlreadyRead: make([]string, 0, 10),
@@ -85,7 +85,7 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 }
 
 func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
-	userNames, err := this.db.Tables().Messages.GetUserNames()
+	userNames, err := this.injector.Db.Tables().Messages.GetUserNames()
 	if err != nil {
 		log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
 		this.setErrorResp("Server error.")
@@ -97,17 +97,17 @@ func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
 
 func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	if this.TextFromClient(update) == consts.BACK_TO_START {
-		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+		return NewAdminStartPage(this.injector)
 	} else if this.errResp != "" || this.warningResp != "" {
 		return this
 	} else {
 		if this.commandName == consts.DELETE_MESSAGES_OF_USER {
-			return NewAdminInfoAfterDeletionPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminInfoAfterDeletionPage(this.injector)
 		} else if this.commandName == consts.BLOCK_USER {
-			return NewNotificationAfterBlockUserPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewNotificationAfterBlockUserPage(this.injector)
 		} else {
 			// consts.SHOW_MESSAGES_OF_SPECIFIC_USER
-			return NewAdminListOfSingleUserMsgsPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminListOfSingleUserMsgsPage(this.injector)
 		}
 	}
 }
@@ -153,17 +153,18 @@ func (this *AdminInputUserNamePage) respForBlockUser(update tgbotapi.Update) str
 // here userName 100% existing
 func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
 	userName := this.TextFromClient(update)
-	isAdmin := this.IsUserAdmin(userName)
+	isAdmin := this.injector.Store.IsAdminByName(userName)
 	if isAdmin {
 		this.setErrorResp(userName + "is admin. You're not allowed to block another admin.")
 		return
 	}
 
 	go func() {
-		err := this.db.Tables().BlockedUsers.BlockUser(userName)
+		err := this.injector.Db.Tables().BlockedUsers.BlockUser(userName)
 		if err != nil {
 			log.Println("[AdminInputUserNamePage_onDestroyBlockUser] BlockUser_err ==>", err)
 		}
+		this.injector.Store.UpdateBlockedUsersList()
 	}()
 
 	this.setErrorResp("")
@@ -172,7 +173,7 @@ func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
 // here userName 100% existing
 func (this *AdminInputUserNamePage) onDestroyDeleteMsgsOfUser(update tgbotapi.Update) {
 	userName := this.TextFromClient(update)
-	err := this.db.Tables().Messages.DeleteMessagesByUserName(userName)
+	err := this.injector.Db.Tables().Messages.DeleteMessagesByUserName(userName)
 	if err != nil {
 		log.Println("[AdminInputUserNamePage_onDestroyDeleteMsgsOfUser] Delete_err ==>", err)
 	}

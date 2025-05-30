@@ -3,18 +3,18 @@ package pages
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type AdminInfoAfterDeletionPage struct {
 	*Page
 }
 
-func NewAdminInfoAfterDeletionPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminInfoAfterDeletionPage {
+func NewAdminInfoAfterDeletionPage(injector *injector.AppInjector) *AdminInfoAfterDeletionPage {
 	p := &AdminInfoAfterDeletionPage{
-		Page: NewPage(db, bot, adminQueryBuilder),
+		Page: NewPage(injector),
 	}
 	p.setCurrenPage(p)
 

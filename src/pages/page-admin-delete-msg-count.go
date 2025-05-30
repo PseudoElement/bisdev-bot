@@ -7,18 +7,18 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type AdminDeleteMsgCountPage struct {
 	*Page
 }
 
-func NewAdminDeleteMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminDeleteMsgCountPage {
+func NewAdminDeleteMsgCountPage(injector *injector.AppInjector) *AdminDeleteMsgCountPage {
 	p := &AdminDeleteMsgCountPage{
-		Page: NewPage(db, bot, adminQueryBuilder),
+		Page: NewPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -49,7 +49,7 @@ func (this *AdminDeleteMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 
 	this.setErrorResp("")
 	go func() {
-		err := this.db.Tables().Messages.DeleteMessages(count)
+		err := this.injector.Db.Tables().Messages.DeleteMessages(count)
 		if err != nil {
 			log.Println("[AdminDeleteMsgCountPage_Action] err in DeleteMessages ==> ", err)
 		}
@@ -62,11 +62,11 @@ func (this *AdminDeleteMsgCountPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 
 func (this *AdminDeleteMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	if this.TextFromClient(update) == consts.BACK_TO_START {
-		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+		return NewAdminStartPage(this.injector)
 	} else if this.errResp != "" {
 		return this
 	} else {
-		return NewAdminInfoAfterDeletionPage(this.db, this.bot, this.adminQueryBuilder)
+		return NewAdminInfoAfterDeletionPage(this.injector)
 	}
 }
 

@@ -6,18 +6,18 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type AdminSelectMsgCountPage struct {
 	*Page
 }
 
-func NewAdminSelectMsgCountPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminSelectMsgCountPage {
+func NewAdminSelectMsgCountPage(injector *injector.AppInjector) *AdminSelectMsgCountPage {
 	p := &AdminSelectMsgCountPage{
-		Page: NewPage(db, bot, adminQueryBuilder),
+		Page: NewPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -56,7 +56,7 @@ func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 	}
 
 	this.setErrorResp("")
-	this.adminQueryBuilder.SetCountOfQueryMsg(
+	this.injector.AdminQueryBuilder.SetCountOfQueryMsg(
 		this.UserName(update),
 		count,
 	)
@@ -64,11 +64,11 @@ func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 
 func (this *AdminSelectMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	if update.CallbackData() == consts.BACK_TO_START {
-		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+		return NewAdminStartPage(this.injector)
 	} else if this.errResp != "" {
 		return this
 	} else {
-		return NewAdminListOfMessagesPage(this.db, this.bot, this.adminQueryBuilder)
+		return NewAdminListOfMessagesPage(this.injector)
 	}
 }
 

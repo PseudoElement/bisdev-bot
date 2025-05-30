@@ -9,9 +9,9 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
@@ -20,13 +20,9 @@ type AdminListOfSingleUserMsgsPage struct {
 	messages []models.DB_UserMessage
 }
 
-func NewAdminListOfSingleUserMsgsPage(
-	db models.IDatabase,
-	bot *tgbotapi.BotAPI,
-	adminQueryBuilder *query_builder.AdminQueryBuilder,
-) *AdminListOfSingleUserMsgsPage {
+func NewAdminListOfSingleUserMsgsPage(injector *injector.AppInjector) *AdminListOfSingleUserMsgsPage {
 	p := &AdminListOfSingleUserMsgsPage{
-		Page:     NewPage(db, bot, adminQueryBuilder),
+		Page:     NewPage(injector),
 		messages: make([]models.DB_UserMessage, 0, 5),
 	}
 	p.setCurrenPage(p)
@@ -160,7 +156,7 @@ func (this *AdminListOfSingleUserMsgsPage) ActionOnInit(update tgbotapi.Update) 
 	}
 	userName := this.TextFromClient(update)
 
-	messages, err := this.db.Tables().Messages.GetMessagesByUserName(userName)
+	messages, err := this.injector.Db.Tables().Messages.GetMessagesByUserName(userName)
 	this.messages = messages
 
 	if err != nil {
@@ -180,7 +176,7 @@ func (this *AdminListOfSingleUserMsgsPage) NextPage(update tgbotapi.Update, isAd
 	if this.errResp != "" {
 		return this
 	}
-	return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+	return NewAdminStartPage(this.injector)
 }
 
 func (this *AdminListOfSingleUserMsgsPage) isImg(blobType string) bool {

@@ -94,11 +94,11 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	this.setErrorResp("")
 
 	go func() {
-		err := this.db.Tables().Messages.AddMessage(dbMsg)
+		err := this.injector.Db.Tables().Messages.AddMessage(dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] Messages_AddMessage err ==> ", err)
 		}
-		err = this.db.Tables().MessagesCount.AddMessage(dbMsg)
+		err = this.injector.Db.Tables().MessagesCount.AddMessage(dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)
 		}

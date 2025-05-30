@@ -8,28 +8,30 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type Page struct {
-	db                models.IDatabase
-	adminQueryBuilder *query_builder.AdminQueryBuilder
-	bot               *tgbotapi.BotAPI
+	injector *injector.AppInjector
+	// db                models.IDatabase
+	// adminQueryBuilder *query_builder.AdminQueryBuilder
+	bot *tgbotapi.BotAPI
 	// should be set in child structs
 	currPage    models.IPage
 	errResp     string
 	warningResp string
 }
 
-func NewPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *Page {
+func NewPage(injector *injector.AppInjector) *Page {
 	return &Page{
-		db:                db,
-		adminQueryBuilder: adminQueryBuilder,
-		bot:               bot,
-		currPage:          nil,
-		errResp:           "",
-		warningResp:       "",
+		// db:                db,
+		// adminQueryBuilder: adminQueryBuilder,
+		injector:    injector,
+		bot:         injector.Bot,
+		currPage:    nil,
+		errResp:     "",
+		warningResp: "",
 	}
 }
 
@@ -92,7 +94,7 @@ func (this *Page) TextFromClient(update tgbotapi.Update) string {
 
 // @REDACTOR keep admins list in store
 func (this *Page) IsUserAdmin(userName string) bool {
-	userId := this.db.Tables().Messages.GetUserId(userName)
+	userId := this.injector.Db.Tables().Messages.GetUserId(userName)
 
 	adminsString, ok := os.LookupEnv("ADMINS")
 	if !ok {
@@ -113,9 +115,9 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	// force return to start page if Comamnd BACK_TO_START selected
 	if update.CallbackData() == consts.BACK_TO_START {
 		if isAdmin {
-			return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminStartPage(this.injector)
 		} else {
-			return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewStartPage(this.injector)
 		}
 	}
 
@@ -127,43 +129,43 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 		ttm := consts.TIME_TO_MIN
 		switch update.CallbackData() {
 		case consts.COLLABORATE:
-			return NewPartnershipPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewPartnershipPage(this.injector)
 		case consts.INTEGRATE:
-			return NewIntegrationPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewIntegrationPage(this.injector)
 		case consts.SUPPORT:
-			return NewSupportPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewSupportPage(this.injector)
 		case consts.OTHER:
-			return NewOtherPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewOtherPage(this.injector)
 		case consts.DESCRIBE_ISSUE:
-			return NewIssueDescriptionPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewIssueDescriptionPage(this.injector)
 
 		case consts.SHOW_MESSAGES:
-			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminSelectOldOrNewMsgsPage(this.injector)
 		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER, consts.BLOCK_USER:
-			return NewAdminInputUserNamePage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminInputUserNamePage(this.injector)
 		case consts.CHECK_LINKS:
-			return NewAdminLinksPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminLinksPage(this.injector)
 		case consts.SHOW_ALL_OR_NEW_MESSAGES:
-			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminSelectOldOrNewMsgsPage(this.injector)
 		case consts.DELETE_MESSAGES:
-			return NewAdminDeleteMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminDeleteMsgCountPage(this.injector)
 		case ttm.Mins_10, ttm.Mins_30, ttm.Hour_1, ttm.Hours_3, ttm.Hours_6, ttm.Hours_12, ttm.Day_1, ttm.Days_3, ttm.Week_1, ttm.Weeks_2, ttm.Month_1, ttm.Months_3:
-			return NewAdminCountOfReceivedMsgsPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminCountOfReceivedMsgsPage(this.injector)
 		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES, consts.SELECT_NUMBER_OF_MESSAGES:
-			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminSelectMsgCountPage(this.injector)
 		case consts.SHOW_MESSAGES_COUNT_BY_TIME:
-			return NewAdminSelectTimeForMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
+			return NewAdminSelectTimeForMsgCountPage(this.injector)
 
 		default:
 			if isAdmin {
-				return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+				return NewAdminStartPage(this.injector)
 			} else {
-				return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
+				return NewStartPage(this.injector)
 			}
 		}
 	}
 
-	return NewThanksPage(this.db, this.bot, this.adminQueryBuilder)
+	return NewThanksPage(this.injector)
 }
 
 func (this *Page) setCurrenPage(page models.IPage) {

@@ -3,17 +3,17 @@ package pages
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
 type SupportPage struct {
 	*AbstrUserInputPage
 }
 
-func NewSupportPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *SupportPage {
-	basePage := NewPage(db, bot, adminQueryBuilder)
+func NewSupportPage(injector *injector.AppInjector) *SupportPage {
+	basePage := NewPage(injector)
 	p := &SupportPage{
 		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
 	}

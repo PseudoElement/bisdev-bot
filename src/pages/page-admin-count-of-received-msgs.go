@@ -7,9 +7,9 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
-	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
@@ -18,9 +18,9 @@ type AdminCountOfReceivedMsgsPage struct {
 	msgCount int
 }
 
-func NewAdminCountOfReceivedMsgsPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminCountOfReceivedMsgsPage {
+func NewAdminCountOfReceivedMsgsPage(injector *injector.AppInjector) *AdminCountOfReceivedMsgsPage {
 	p := &AdminCountOfReceivedMsgsPage{
-		Page:     NewPage(db, bot, adminQueryBuilder),
+		Page:     NewPage(injector),
 		msgCount: 0,
 	}
 	p.setCurrenPage(p)
@@ -62,7 +62,7 @@ func (this *AdminCountOfReceivedMsgsPage) ActionOnInit(update tgbotapi.Update) {
 	}
 
 	sqlTimestamp := utils.GetSqlTimestampByMinutesUTC(minsCountAgo, true)
-	msgCount, err := this.db.Tables().MessagesCount.CheckMessagesCount(sqlTimestamp)
+	msgCount, err := this.injector.Db.Tables().MessagesCount.CheckMessagesCount(sqlTimestamp)
 	if err != nil {
 		log.Println("[AdminCountOfReceivedMsgsPage_ActionOnInit] CheckMessagesCount_err ==>", err)
 		this.setErrorResp("Server error.")
