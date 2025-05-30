@@ -32,7 +32,7 @@ func (this *AdminStartPage) AllowedOnlyCommands() bool {
 }
 
 func (this *AdminStartPage) RespText(update tgbotapi.Update) string {
-	return fmt.Sprintf("Admin mode for **%s** activated. Select option:", this.UserName(update))
+	return fmt.Sprintf("Admin mode for @%s activated. Select option:", this.UserName(update))
 }
 
 func (this *AdminStartPage) Keyboard() tgbotapi.InlineKeyboardMarkup {

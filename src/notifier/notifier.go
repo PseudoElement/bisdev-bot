@@ -1,6 +1,10 @@
 package notifier
 
-import "github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+import (
+	"log"
+
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+)
 
 type Notifier struct {
 	notificationChan chan any
@@ -28,9 +32,13 @@ func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgFromClient) {
 }
 
 func (this *Notifier) NotifyAdminsOnBlockedUsers(userName string, adminName string) {
-	this.notificationChan <- NotificationBlockUser{BlockedUserName: userName, AdminUserName: adminName}
+	notification := NotificationBlockUser{BlockedUserName: userName, AdminUserName: adminName}
+	log.Printf("[Notifier_NotifyAdminsOnBlockedUsers] block_notification ==> %+v\n", notification)
+	this.notificationChan <- notification
 }
 
 func (this *Notifier) NotifyAdminsOnUnblockedUsers(userName string, adminName string) {
-	this.notificationChan <- NotificationUnblockUser{UnblockedUserName: userName, AdminUserName: adminName}
+	notification := NotificationUnblockUser{UnblockedUserName: userName, AdminUserName: adminName}
+	log.Printf("[Notifier_NotifyAdminsOnUnblockedUsers] unblock_notification ==> %+v\n", notification)
+	this.notificationChan <- notification
 }
