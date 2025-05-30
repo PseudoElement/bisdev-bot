@@ -130,6 +130,8 @@ func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin boo
 			return NewAdminInfoAfterDeletionPage(this.injector)
 		} else if this.commandName == consts.BLOCK_USER {
 			return NewNotificationAfterBlockUserPage(this.injector)
+		} else if this.commandName == consts.UNBLOCK_USER {
+			return NewAdminNotificationAfterUserUnblockPage(this.injector)
 		} else {
 			// consts.SHOW_MESSAGES_OF_SPECIFIC_USER
 			return NewAdminListOfSingleUserMsgsPage(this.injector)
