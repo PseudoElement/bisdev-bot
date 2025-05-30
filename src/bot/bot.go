@@ -274,7 +274,7 @@ func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMess
 	for _, admin := range this.injector.Store.GetAdmins() {
 		text := "✉️ New message from " + note.FromInitials + "(login @" + note.FromUserName + ")\n"
 		if note.WithFiles {
-			text += "Contains pinned files, to see files - load messages of this user via **👤 Show messages of specific user**.\n"
+			text += "Contains pinned file, to see file - use 👤 Show messages of specific user.\n"
 		}
 		text += "Message:\n" + note.Text
 		msg := tgbotapi.NewMessage(admin.ChatId, text)
