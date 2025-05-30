@@ -215,6 +215,7 @@ func (this *AdminInputUserNamePage) onDestroyUnblockUser(update tgbotapi.Update)
 		log.Println("[AdminInputUserNamePage_onDestroyUnblockUser] UnblockUser_err ==>", err)
 	}
 	this.injector.Notifier.NotifyAdminsOnUnblockedUsers(userName, this.UserName(update))
+	this.injector.Store.UpdateBlockedUsersList()
 
 	this.setErrorResp("")
 }
