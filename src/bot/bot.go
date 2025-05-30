@@ -11,6 +11,7 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/notifier"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
@@ -43,13 +44,7 @@ func NewBuisdevBot() *BuisdevBot {
 	if err != nil {
 		panic("IS_PROD variable supposed to be true of false.")
 	}
-
 	bot.Debug = !isProd
-
-	// db := db.NewSqliteDB()
-	// adminQueryBuilder := query_builder.NewAdminQueryBuilder()
-	// admins := strings.Split(adminsString, " ")
-	// store := store.NewStore(db)
 
 	injector := injector.NewAppInjector(bot)
 
@@ -64,7 +59,7 @@ func NewBuisdevBot() *BuisdevBot {
 	return b
 }
 
-func (this *BuisdevBot) Listen() {
+func (this *BuisdevBot) ListenUpdates() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = math.MaxInt
 
@@ -77,7 +72,7 @@ func (this *BuisdevBot) Listen() {
 			userId = update.CallbackQuery.From.ID
 		}
 
-		if this.isBlockedUser(userId) && !this.injector.Store.IsAdminById(userId) {
+		if this.injector.Store.IsBlockedUserById(userId) && !this.injector.Store.IsAdminById(userId) {
 			this.handleBlockedUserRequest(update)
 			continue
 		}
@@ -115,6 +110,20 @@ func (this *BuisdevBot) Listen() {
 
 			this.lastCommand = update.CallbackData()
 			this.handleCallbackRequest(update)
+		}
+	}
+}
+
+func (this *BuisdevBot) ListenNotifier() {
+	for note := range this.injector.Notifier.Chan() {
+		switch note.(type) {
+		case notifier.NotificationBlockUser:
+			// v := note.(notifier.NotificationBlockUser)
+		case notifier.NotificationNewMessage:
+			v := note.(notifier.NotificationNewMessage)
+			go this.sendNewMessageToAdmins(v)
+		default:
+			log.Println("!!!NOTE: unknown note type %v", note)
 		}
 	}
 }
@@ -226,9 +235,16 @@ func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 }
 
 func (this *BuisdevBot) handleBlockedUserRequest(update tgbotapi.Update) {
+	var chatId int64
+	if update.Message != nil {
+		chatId = update.Message.Chat.ID
+	}
+	if update.CallbackQuery != nil {
+		chatId = update.CallbackQuery.Message.Chat.ID
+	}
 	msg := tgbotapi.NewMessage(
-		update.Message.Chat.ID,
-		"You're blocked by administrators because of rules violation. Contact support-team to ask unblocking.",
+		chatId,
+		"You're blocked because of rules violation. Contact support-team for details https://t.me/RubicSupportBot.",
 	)
 
 	go this.bot.Send(msg)
@@ -250,11 +266,17 @@ func (this *BuisdevBot) sendTextResponse(update tgbotapi.Update, nextPage models
 	}
 }
 
-func (this *BuisdevBot) isBlockedUser(userId int64) bool {
-	for _, user := range this.injector.Store.GetBlockedUsers() {
-		if userId == user.UserId {
-			return true
+func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMessage) {
+	for _, admin := range this.injector.Store.GetAdmins() {
+		text := "✉️ New message from " + note.FromInitials + "(login @" + note.FromUserName + ")\n"
+		if note.WithFiles {
+			text += "Contains pinned files, to see files - load messages of this user via **👤 Show messages of specific user**.\n"
 		}
+		text += "Message:\n" + note.Text
+
+		msg := tgbotapi.NewMessage(admin.ChatId, text)
+		// msg.ParseMode = "HTML"
+
+		this.bot.Send(msg)
 	}
-	return false
 }

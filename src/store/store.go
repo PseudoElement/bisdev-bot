@@ -60,6 +60,16 @@ func (this *Store) GetBlockedUsers() []models.Db_BlockedUser {
 }
 
 // checks by UserID
+func (this *Store) IsBlockedUserById(userId int64) bool {
+	for _, user := range this.blockedUsers {
+		if userId == user.UserId {
+			return true
+		}
+	}
+	return false
+}
+
+// checks by UserID
 func (this *Store) IsAdminById(userId int64) bool {
 	for _, admin := range this.admins {
 		if userId == admin.UserId {
@@ -97,10 +107,13 @@ func (this *Store) SetAdminData(update tgbotapi.Update) {
 	}
 
 	this.admins[userId] = models.Admin{
-		ChatId:   chatId,
-		UserId:   chatId,
-		UserName: userName,
+		ChatId:             chatId,
+		UserId:             chatId,
+		UserName:           userName,
+		IsListenToNotifier: true,
 	}
 }
 
-func (this *Store) GetAdmins()
+func (this *Store) GetAdmins() map[int64]models.Admin {
+	return this.admins
+}

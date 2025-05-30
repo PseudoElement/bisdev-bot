@@ -24,7 +24,8 @@ type MessagesReq struct {
 }
 
 type Admin struct {
-	ChatId   int64
-	UserName string
-	UserId   int64
+	ChatId             int64
+	UserName           string
+	UserId             int64
+	IsListenToNotifier bool
 }

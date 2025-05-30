@@ -14,5 +14,7 @@ func main() {
 	}
 
 	bot := bd_bot.NewBuisdevBot()
-	bot.Listen()
+
+	go bot.ListenNotifier()
+	bot.ListenUpdates()
 }

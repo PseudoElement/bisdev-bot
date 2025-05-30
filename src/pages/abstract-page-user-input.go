@@ -36,7 +36,7 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
 	}
-	if utf8.RuneCountInString(this.TextFromClient(update)) > 1000 {
+	if utf8.RuneCountInString(this.TextFromClient(update)) > 500 {
 		this.setErrorResp("Too large message.")
 		return
 	}
@@ -98,6 +98,8 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] Messages_AddMessage err ==> ", err)
 		}
+		this.injector.Notifier.NotifyAdminsOnNewMsg(dbMsg)
+
 		err = this.injector.Db.Tables().MessagesCount.AddMessage(dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)

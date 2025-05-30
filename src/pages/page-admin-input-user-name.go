@@ -75,7 +75,6 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 				// not in goroutine cause need check if user is admin
 				this.onDestroyBlockUser(update)
 			}
-			this.setErrorResp("")
 			return
 		}
 	}
@@ -85,17 +84,24 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 }
 
 func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
-	userNames, err := this.injector.Db.Tables().Messages.GetUserNames()
-	if err != nil {
-		log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
-		this.setErrorResp("Server error.")
-		return
+	if len(this.userNames.AlreadyRead) == 0 && len(this.userNames.NotRead) == 0 {
+		userNames, err := this.injector.Db.Tables().Messages.GetUserNames()
+		if err != nil {
+			log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
+			this.setErrorResp("Server error.")
+			return
+		}
+		this.userNames = userNames
+
+		if update.CallbackData() != "" {
+			this.commandName = this.TextFromClient(update)
+		}
 	}
-	this.userNames = userNames
-	this.commandName = this.TextFromClient(update)
+
 }
 
 func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
+	log.Println("[AdminInputUserNamePage_NextPage] commandName - ", this.commandName, " err - ", this.errResp)
 	if this.TextFromClient(update) == consts.BACK_TO_START {
 		return NewAdminStartPage(this.injector)
 	} else if this.errResp != "" || this.warningResp != "" {
@@ -153,9 +159,9 @@ func (this *AdminInputUserNamePage) respForBlockUser(update tgbotapi.Update) str
 // here userName 100% existing
 func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
 	userName := this.TextFromClient(update)
-	isAdmin := this.injector.Store.IsAdminByName(userName)
-	if isAdmin {
-		this.setErrorResp(userName + "is admin. You're not allowed to block another admin.")
+	if this.injector.Store.IsAdminByName(userName) {
+		log.Printf("!!!NOTE: %s tried to block admin %s.\n", update.Message.From.UserName, userName)
+		this.setErrorResp(userName + " is admin. You're not allowed to block another admin.")
 		return
 	}
 
@@ -177,6 +183,8 @@ func (this *AdminInputUserNamePage) onDestroyDeleteMsgsOfUser(update tgbotapi.Up
 	if err != nil {
 		log.Println("[AdminInputUserNamePage_onDestroyDeleteMsgsOfUser] Delete_err ==>", err)
 	}
+
+	this.setErrorResp("")
 }
 
 var _ models.IPageWithActionOnDestroy = (*AdminInputUserNamePage)(nil)
