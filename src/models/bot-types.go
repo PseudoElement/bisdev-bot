@@ -1,6 +1,7 @@
 package models
 
-type JsonMsgFromClient struct {
+type UserMsgFromClient struct {
+	UserId    int64
 	UserName  string
 	Initials  string
 	Text      string

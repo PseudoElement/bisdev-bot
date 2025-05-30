@@ -25,7 +25,7 @@ func (this T_MessagesCount) CreateTable() error {
 	return err
 }
 
-func (this T_MessagesCount) AddMessage(msg models.JsonMsgFromClient) error {
+func (this T_MessagesCount) AddMessage(msg models.UserMsgFromClient) error {
 	_, err := this.conn.Exec("INSERT INTO messages_count (created_at) VALUES ($1)", msg.CreatedAt)
 
 	return err

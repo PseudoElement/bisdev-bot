@@ -9,20 +9,20 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
-func (this T_Messages) AddMessage(msg models.JsonMsgFromClient) error {
+func (this T_Messages) AddMessage(msg models.UserMsgFromClient) error {
 	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Initials, msg.Text, len(msg.Blob), msg.BlobType})
 
 	var err error
 	if msg.Blob != nil && len(msg.Blob) > 0 {
 		_, err = this.conn.Exec(
-			`INSERT INTO messages (user_name, initials, text, new, blob_type, blob, created_at) 
-			VALUES ($1, $2, $3, $4, $5, $6, $7);`,
-			msg.UserName, msg.Initials, msg.Text, true, msg.BlobType, msg.Blob, msg.CreatedAt)
+			`INSERT INTO messages (user_id, user_name, initials, text, new, blob_type, blob, created_at) 
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
+			msg.UserId, msg.UserName, msg.Initials, msg.Text, true, msg.BlobType, msg.Blob, msg.CreatedAt)
 	} else {
 		_, err = this.conn.Exec(
-			`INSERT INTO messages (user_name, initials, text, new, created_at) 
-			VALUES ($1, $2, $3, $4, $5);`,
-			msg.UserName, msg.Initials, msg.Text, true, msg.CreatedAt)
+			`INSERT INTO messages (user_id, user_name, initials, text, new, created_at) 
+			VALUES ($1, $2, $3, $4, $5, $6);`,
+			msg.UserId, msg.UserName, msg.Initials, msg.Text, true, msg.CreatedAt)
 	}
 
 	return err
@@ -32,7 +32,7 @@ func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMess
 	messages := make([]models.DB_UserMessage, 0, req.Count)
 	hasNewMsgs := false
 
-	query := "SELECT id, user_name, initials, text, new, created_at FROM messages "
+	query := "SELECT id, user_id, user_name, initials, text, new, created_at FROM messages "
 	if req.NewOnly {
 		query += "WHERE new = true "
 	}
@@ -47,7 +47,7 @@ func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMess
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserId, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
@@ -95,7 +95,7 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.BlobType, &msg.Blob, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserId, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.BlobType, &msg.Blob, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}

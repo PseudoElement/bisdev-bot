@@ -21,6 +21,7 @@ func (this T_Messages) CreateTable() error {
 	_, err := this.conn.Exec(fmt.Sprintf(
 		`CREATE TABLE IF NOT EXISTS messages (
             id INTEGER NOT NULL PRIMARY KEY,
+			user_id INTEGER NOT NULL,
             user_name VARCHAR(50) NOT NULL,
 			initials VARCHAR(50) NOT NULL,
             text TEXT NOT NULL,

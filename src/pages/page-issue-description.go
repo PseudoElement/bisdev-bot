@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
@@ -38,4 +39,10 @@ func (this *IssueDescriptionPage) RespText(update tgbotapi.Update) string {
 - Screenshot (no more than 1 image per request)`
 }
 
+func (this *IssueDescriptionPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return keyboards.BackToStartKeyBoard
+}
+
+var _ models.IPage = (*IssueDescriptionPage)(nil)
+var _ models.IPageWithKeyboard = (*IssueDescriptionPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*IssueDescriptionPage)(nil)

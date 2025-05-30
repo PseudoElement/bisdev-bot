@@ -14,6 +14,7 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/store"
 )
 
 type BuisdevBot struct {
@@ -25,6 +26,7 @@ type BuisdevBot struct {
 	adminQueryBuilder *query_builder.AdminQueryBuilder
 	// key is userId
 	pages map[int64]models.IPage
+	store *store.Store
 }
 
 func NewBuisdevBot() *BuisdevBot {
@@ -42,17 +44,17 @@ func NewBuisdevBot() *BuisdevBot {
 	if err != nil {
 		panic("IS_PROD variable supposed to be true of false.")
 	}
-
 	adminsString, ok := os.LookupEnv("ADMINS")
 	if !ok {
 		adminsString = ""
 	}
-	admins := strings.Split(adminsString, " ")
 
 	bot.Debug = !isProd
 
 	db := db.NewSqliteDB()
 	adminQueryBuilder := query_builder.NewAdminQueryBuilder()
+	admins := strings.Split(adminsString, " ")
+	store := store.NewStore(db)
 
 	b := &BuisdevBot{
 		bot:               bot,
@@ -62,6 +64,7 @@ func NewBuisdevBot() *BuisdevBot {
 		lastCommand:       "",
 		db:                db,
 		adminQueryBuilder: adminQueryBuilder,
+		store:             store,
 	}
 
 	return b
@@ -78,6 +81,11 @@ func (this *BuisdevBot) Listen() {
 		}
 		if update.CallbackQuery != nil {
 			userId = update.CallbackQuery.From.ID
+		}
+
+		if this.isBlockedUser(userId) {
+			this.handleBlockedUserRequest(update)
+			continue
 		}
 
 		_, ok := this.pages[userId]
@@ -207,6 +215,24 @@ func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 
 		go this.bot.Send(msg)
 	}
+}
+
+func (this *BuisdevBot) handleBlockedUserRequest(update tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(
+		update.Message.Chat.ID,
+		"You're blocked by administrators because of rules violation. Contact support-team to ask unblocking.",
+	)
+
+	go this.bot.Send(msg)
+}
+
+func (this *BuisdevBot) isBlockedUser(userId int64) bool {
+	for _, user := range this.store.GetBlockedUser() {
+		if userId == user.UserId {
+			return true
+		}
+	}
+	return false
 }
 
 func (this *BuisdevBot) isAdmin(userId int64) bool {

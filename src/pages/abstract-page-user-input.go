@@ -40,8 +40,9 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		return
 	}
 
-	dbMsg := models.JsonMsgFromClient{
+	dbMsg := models.UserMsgFromClient{
 		UserName:  this.UserName(update),
+		UserId:    this.UserID(update),
 		Initials:  fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
 		Text:      this.TextFromClient(update),
 		CreatedAt: utils.GetSqlTimestampByMinutesUTC(0, false),

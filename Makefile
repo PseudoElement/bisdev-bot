@@ -1,4 +1,4 @@
 start:
 	go run .
 build:
-	go build -o bot
+	go build -o ./builds/bot

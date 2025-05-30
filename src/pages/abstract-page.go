@@ -53,9 +53,22 @@ func (this *Page) UserName(update tgbotapi.Update) string {
 		return update.CallbackQuery.From.UserName
 	}
 
-	log.Println("[Page_UserName()] unexpected empty UserName ==> ", update)
+	log.Printf("[Page_UserName()] unexpected empty UserName ==> %+v", update.Message)
 
 	return strconv.Itoa(int(update.Message.From.ID))
+}
+
+func (this *Page) UserID(update tgbotapi.Update) int64 {
+	if update.Message != nil {
+		return update.Message.From.ID
+	}
+	if update.CallbackQuery != nil {
+		return update.CallbackQuery.From.ID
+	}
+
+	log.Println("[Page_UserID()] unexpected 0 UserID ==> ", update.Message)
+
+	return 0
 }
 
 func (this *Page) TextFromClient(update tgbotapi.Update) string {
@@ -94,19 +107,17 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 
 		case consts.SHOW_MESSAGES:
 			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
-		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER:
+		case consts.SHOW_MESSAGES_OF_SPECIFIC_USER, consts.DELETE_MESSAGES_OF_USER, consts.BLOCK_USER:
 			return NewAdminInputUserNamePage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.CHECK_LINKS:
 			return NewAdminLinksPage(this.db, this.bot, this.adminQueryBuilder)
-		case consts.SELECT_NUMBER_OF_MESSAGES:
-			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SHOW_ALL_OR_NEW_MESSAGES:
 			return NewAdminSelectOldOrNewMsgsPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.DELETE_MESSAGES:
 			return NewAdminDeleteMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 		case ttm.Mins_10, ttm.Mins_30, ttm.Hour_1, ttm.Hours_3, ttm.Hours_6, ttm.Hours_12, ttm.Day_1, ttm.Days_3, ttm.Week_1, ttm.Weeks_2, ttm.Month_1, ttm.Months_3:
 			return NewAdminCountOfReceivedMsgsPage(this.db, this.bot, this.adminQueryBuilder)
-		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES:
+		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES, consts.SELECT_NUMBER_OF_MESSAGES:
 			return NewAdminSelectMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 		case consts.SHOW_MESSAGES_COUNT_BY_TIME:
 			return NewAdminSelectTimeForMsgCountPage(this.db, this.bot, this.adminQueryBuilder)

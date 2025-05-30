@@ -67,8 +67,9 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 	}
 
 	str := bytes.NewBufferString("Here is the list of messages:\n")
-	for _, msg := range this.messages {
-		row := fmt.Sprintf("Username: %s\nInitials: %s\nCreation time(Moscow time): %v\nMessage:\n %v\n\n",
+	for idx, msg := range this.messages {
+		row := fmt.Sprintf("%d. Username: %s\nInitials: %s\nCreation time(Moscow time): %v\nMessage:\n %v\n\n",
+			idx+1,
 			msg.UserName,
 			msg.Initials,
 			utils.ConvertUTCToMoscowTime(msg.CreatedAt),
@@ -83,21 +84,21 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig {
 	files := make([]interface{}, 0, len(this.messages))
 
-	idx := 1
-	for _, msg := range this.messages {
+	filesCount := 1
+	for idx, msg := range this.messages {
 		// 10 files max
-		if idx > 10 {
+		if filesCount > 10 {
 			break
 		}
 
 		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
-			fileName := "file_" + strconv.Itoa(idx) + "." + msg.BlobType
+			fileName := "file_" + strconv.Itoa(idx+1) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
 			files = append(files, tgbotapi.NewInputMediaDocument(fileBytes))
-		}
 
-		idx++
+			filesCount++
+		}
 	}
 
 	filesMG := tgbotapi.NewMediaGroup(update.Message.Chat.ID, files)

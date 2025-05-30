@@ -34,7 +34,7 @@ func (this *ThanksPage) RespText(update tgbotapi.Update) string {
 }
 
 func (this *ThanksPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return keyboards.ThanksPageKeyboard
+	return keyboards.BackToStartKeyBoard
 }
 
 var _ models.IPageWithKeyboard = (*ThanksPage)(nil)

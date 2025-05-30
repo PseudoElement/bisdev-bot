@@ -6,6 +6,14 @@ import (
 )
 
 var EmptyBoard = tgbotapi.NewInlineKeyboardMarkup()
+var BackToStartKeyBoard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData(
+			"Back to start page",
+			consts.BACK_TO_START,
+		),
+	),
+)
 
 var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
@@ -40,14 +48,6 @@ var StartPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-var ThanksPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(
-			"Back to start page.",
-			consts.BACK_TO_START,
-		),
-	))
-
 var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonURL(
@@ -63,7 +63,7 @@ var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
-			"Back to start page.",
+			"Back to start page",
 			consts.BACK_TO_START,
 		),
 	))
@@ -75,7 +75,7 @@ var IntegrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	supportBotLink,
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
-			"Back to start page.",
+			"Back to start page",
 			consts.BACK_TO_START,
 		),
 	),
@@ -120,6 +120,12 @@ var (
 				consts.DELETE_MESSAGES_OF_USER,
 			),
 		),
+		// tgbotapi.NewInlineKeyboardRow(
+		// 	tgbotapi.NewInlineKeyboardButtonData(
+		// 		"🚷 Block user",
+		// 		consts.BLOCK_USER,
+		// 	),
+		// ),
 	)
 
 	AdminSelectTimeForMsgCountPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -199,9 +205,9 @@ var (
 
 	AdminLinksPageKeyboard = IntegrationPageKeyboard
 
-	AdminListOfLinksPageKeyboard = ThanksPageKeyboard
+	AdminListOfLinksPageKeyboard = BackToStartKeyBoard
 
-	AdminInfoAfterDeletionMsgPageKeyboard = ThanksPageKeyboard
+	AdminInfoAfterDeletionMsgPageKeyboard = BackToStartKeyBoard
 
 	AdminCountOfReceivedMsgsPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
@@ -212,12 +218,12 @@ var (
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
-				"Back to start page.",
+				"Back to start page",
 				consts.BACK_TO_START,
 			),
 		))
 
-	AdminInputUserNamePageKeyboard = ThanksPageKeyboard
+	AdminInputUserNamePageKeyboard = BackToStartKeyBoard
 
 	AdminOldOrNewMessagesPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(

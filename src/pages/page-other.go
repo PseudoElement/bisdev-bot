@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
@@ -34,5 +35,10 @@ func (this *OtherPage) RespText(update tgbotapi.Update) string {
 We aim to reply within 24 hours(no more than 1 image per request).`
 }
 
+func (this *OtherPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return keyboards.BackToStartKeyBoard
+}
+
 var _ models.IPage = (*OtherPage)(nil)
+var _ models.IPageWithKeyboard = (*OtherPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*OtherPage)(nil)

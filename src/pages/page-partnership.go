@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
@@ -42,5 +43,10 @@ Can you share the following:
 Once you're done, I’ll share this with our BD team and we’ll follow up fast.  `
 }
 
+func (this *PartnershipPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return keyboards.BackToStartKeyBoard
+}
+
 var _ models.IPage = (*PartnershipPage)(nil)
+var _ models.IPageWithKeyboard = (*PartnershipPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*PartnershipPage)(nil)

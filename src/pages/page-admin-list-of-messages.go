@@ -42,8 +42,9 @@ func (this *AdminListOfMessagesPage) RespText(update tgbotapi.Update) string {
 	}
 
 	str := bytes.NewBufferString("Here is the list of messages:\n\n")
-	for _, msg := range this.messages {
-		row := fmt.Sprintf("User: %s\nInitials: %s\nCreation time(Moscow time): %v\nMessage: %v\n\n",
+	for idx, msg := range this.messages {
+		row := fmt.Sprintf("%d. User: %s\n Initials: %s\n Creation time(Moscow time): %v\n Message: %v\n\n",
+			idx+1,
 			msg.UserName,
 			msg.Initials,
 			utils.ConvertUTCToMoscowTime(msg.CreatedAt),

@@ -45,7 +45,7 @@ func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 		this.setErrorResp(fmt.Sprintf("%v is invalid number of messages.\n", this.TextFromClient(update)))
 		return
 	}
-	if count == 0 {
+	if count <= 0 {
 		this.setErrorResp("I think it's a joke. Try to use bigger number.")
 		return
 	}
