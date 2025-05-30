@@ -37,11 +37,11 @@ func NewSqliteDB() *SqliteDB {
 	}
 	err = db.tables.MessagesCount.CreateTable()
 	if err != nil {
-		panic("[NewSqliteDB] MessagesCount_teTable err ==>" + err.Error())
+		panic("[NewSqliteDB] MessagesCount_CreateTable err ==>" + err.Error())
 	}
 	err = db.tables.BlockedUsers.CreateTable()
 	if err != nil {
-		panic("[NewSqliteDB] BlockedUsers_teTable err ==>" + err.Error())
+		panic("[NewSqliteDB] BlockedUsers_CreateTable err ==>" + err.Error())
 	}
 
 	log.Println("Sqlite successfully connected.")

@@ -31,7 +31,7 @@ func (this T_BlockedUsers) BlockUser(userName string) error {
 	res, err := this.conn.Exec(`
 		INSERT INTO blocked_users (user_id, user_name)
 		SELECT (user_id, user_name) FROM messages
-		WHERE user_name = $1;
+		WHERE LOWER(user_name) = LOWER($1);
 	`, userName)
 	if err != nil {
 		log.Println("[T_BlockedUsers_BlockUser] Exec_err ==>", err)

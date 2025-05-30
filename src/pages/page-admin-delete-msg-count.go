@@ -8,6 +8,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
@@ -35,14 +36,13 @@ func (this *AdminDeleteMsgCountPage) RespText(update tgbotapi.Update) string {
 	return "Input number of latest messages, you want to delete (ex. 1, 10):"
 }
 
-// add "ALL" messages
 func (this *AdminDeleteMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 	count, err := strconv.Atoi(this.TextFromClient(update))
 	if err != nil {
 		this.setErrorResp(fmt.Sprintf("%v is invalid number of messages.\n", this.TextFromClient(update)))
 		return
 	}
-	if count == 0 {
+	if count <= 0 {
 		this.setErrorResp("I think it's a joke. Try to use bigger number.")
 		return
 	}
@@ -56,12 +56,20 @@ func (this *AdminDeleteMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 	}()
 }
 
+func (this *AdminDeleteMsgCountPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return keyboards.BackToStartKeyBoard
+}
+
 func (this *AdminDeleteMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	if this.errResp != "" {
+	if this.TextFromClient(update) == consts.BACK_TO_START {
+		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+	} else if this.errResp != "" {
 		return this
 	} else {
 		return NewAdminInfoAfterDeletionPage(this.db, this.bot, this.adminQueryBuilder)
 	}
 }
 
+var _ models.IPage = (*AdminDeleteMsgCountPage)(nil)
+var _ models.IPageWithKeyboard = (*AdminDeleteMsgCountPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*AdminDeleteMsgCountPage)(nil)

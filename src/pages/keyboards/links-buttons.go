@@ -1,6 +1,9 @@
 package keyboards
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+)
 
 var (
 	sdkApiLink = tgbotapi.NewInlineKeyboardRow(
@@ -30,4 +33,11 @@ var (
 			"https://t.me/RubicSupportBot",
 		),
 	)
+)
+
+var backToStartButton = tgbotapi.NewInlineKeyboardRow(
+	tgbotapi.NewInlineKeyboardButtonData(
+		"Back to start page",
+		consts.BACK_TO_START,
+	),
 )

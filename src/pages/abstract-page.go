@@ -2,7 +2,9 @@ package pages
 
 import (
 	"log"
+	"os"
 	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
@@ -15,8 +17,9 @@ type Page struct {
 	adminQueryBuilder *query_builder.AdminQueryBuilder
 	bot               *tgbotapi.BotAPI
 	// should be set in child structs
-	currPage models.IPage
-	errResp  string
+	currPage    models.IPage
+	errResp     string
+	warningResp string
 }
 
 func NewPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *Page {
@@ -26,6 +29,7 @@ func NewPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query
 		bot:               bot,
 		currPage:          nil,
 		errResp:           "",
+		warningResp:       "",
 	}
 }
 
@@ -86,8 +90,36 @@ func (this *Page) TextFromClient(update tgbotapi.Update) string {
 	return ""
 }
 
+// @REDACTOR keep admins list in store
+func (this *Page) IsUserAdmin(userName string) bool {
+	userId := this.db.Tables().Messages.GetUserId(userName)
+
+	adminsString, ok := os.LookupEnv("ADMINS")
+	if !ok {
+		return false
+	}
+	admins := strings.Split(adminsString, " ")
+
+	for _, adminId := range admins {
+		if strconv.Itoa(int(userId)) == adminId {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	if this.errResp != "" {
+	// force return to start page if Comamnd BACK_TO_START selected
+	if update.CallbackData() == consts.BACK_TO_START {
+		if isAdmin {
+			return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+		} else {
+			return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
+		}
+	}
+
+	if this.errResp != "" || this.warningResp != "" {
 		return this.CurrPage()
 	}
 
@@ -122,12 +154,6 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 		case consts.SHOW_MESSAGES_COUNT_BY_TIME:
 			return NewAdminSelectTimeForMsgCountPage(this.db, this.bot, this.adminQueryBuilder)
 
-		case consts.BACK_TO_START:
-			if isAdmin {
-				return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
-			} else {
-				return NewStartPage(this.db, this.bot, this.adminQueryBuilder)
-			}
 		default:
 			if isAdmin {
 				return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
@@ -146,4 +172,8 @@ func (this *Page) setCurrenPage(page models.IPage) {
 
 func (this *Page) setErrorResp(err string) {
 	this.errResp = err
+}
+
+func (this *Page) setWarningResp(warning string) {
+	this.warningResp = warning
 }

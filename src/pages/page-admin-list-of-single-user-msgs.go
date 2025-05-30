@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -68,6 +69,7 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 
 	str := bytes.NewBufferString("Here is the list of messages:\n")
 	for idx, msg := range this.messages {
+		// msg.
 		row := fmt.Sprintf("%d. Username: %s\nInitials: %s\nCreation time(Moscow time): %v\nMessage:\n %v\n\n",
 			idx+1,
 			msg.UserName,
@@ -81,63 +83,84 @@ func (this *AdminListOfSingleUserMsgsPage) RespText(update tgbotapi.Update) stri
 	return str.String()
 }
 
-func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig {
-	files := make([]interface{}, 0, len(this.messages))
+func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) []tgbotapi.MediaGroupConfig {
+	filesChunks := make(
+		[][]interface{},
+		0,
+		int(math.Ceil(float64(len(this.messages)/10))),
+	)
 
-	filesCount := 1
+	currFilesChunk := 0
+	filesChunks = append(filesChunks, make([]interface{}, 0, 10))
 	for idx, msg := range this.messages {
-		// 10 files max
-		if filesCount > 10 {
-			break
+		if len(filesChunks[currFilesChunk]) >= 10 {
+			currFilesChunk++
+			filesChunks = append(filesChunks, make([]interface{}, 0, 10))
 		}
 
 		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
 			fileName := "file_" + strconv.Itoa(idx+1) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
-			files = append(files, tgbotapi.NewInputMediaDocument(fileBytes))
+			document := tgbotapi.NewInputMediaDocument(fileBytes)
 
-			filesCount++
+			filesChunks[currFilesChunk] = append(filesChunks[currFilesChunk], document)
 		}
 	}
 
-	filesMG := tgbotapi.NewMediaGroup(update.Message.Chat.ID, files)
+	// check if approach by index to filesChunks not buggy
+	mediagroups := make([]tgbotapi.MediaGroupConfig, len(filesChunks), len(filesChunks))
+	for idx, filesChunk := range filesChunks {
+		mg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, filesChunk)
+		mediagroups[idx] = mg
+	}
 
-	return filesMG
+	return mediagroups
 }
 
 // @TODO handle more than 10 photos in resp
-func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig {
-	photos := make([]interface{}, 0, len(this.messages))
+func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) []tgbotapi.MediaGroupConfig {
+	photosChunks := make(
+		[][]interface{},
+		0,
+		int(math.Ceil(float64(len(this.messages)/10))),
+	)
 
-	idx := 1
-	for _, msg := range this.messages {
-		// 10 photos max
-		if idx > 10 {
-			break
+	currPhotosChunk := 0
+	photosChunks = append(photosChunks, make([]interface{}, 0, 10))
+	for idx, msg := range this.messages {
+		if len(photosChunks[currPhotosChunk]) >= 10 {
+			currPhotosChunk++
+			photosChunks = append(photosChunks, make([]interface{}, 0, 10))
 		}
 
 		if this.isImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
-			fileName := "img_" + strconv.Itoa(idx) + "." + msg.BlobType
+			fileName := "img_" + strconv.Itoa(idx+1) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
-			photos = append(photos, tgbotapi.NewInputMediaPhoto(fileBytes))
-		}
+			document := tgbotapi.NewInputMediaDocument(fileBytes)
 
-		idx++
+			photosChunks[currPhotosChunk] = append(photosChunks[currPhotosChunk], document)
+		}
 	}
 
-	photoMG := tgbotapi.NewMediaGroup(update.Message.Chat.ID, photos)
+	// check if approach by index to filesChunks not buggy
+	mediagroups := make([]tgbotapi.MediaGroupConfig, len(photosChunks), len(photosChunks))
+	for idx, filesChunk := range photosChunks {
+		mg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, filesChunk)
+		mediagroups[idx] = mg
+	}
 
-	return photoMG
+	return mediagroups
 }
 
 func (this *AdminListOfSingleUserMsgsPage) ActionOnInit(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
 	}
+	userName := this.TextFromClient(update)
 
-	messages, err := this.db.Tables().Messages.GetMessagesByUserName(this.TextFromClient(update))
+	messages, err := this.db.Tables().Messages.GetMessagesByUserName(userName)
 	this.messages = messages
 
 	if err != nil {

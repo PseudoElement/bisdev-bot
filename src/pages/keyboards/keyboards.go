@@ -5,7 +5,6 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 )
 
-var EmptyBoard = tgbotapi.NewInlineKeyboardMarkup()
 var BackToStartKeyBoard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
@@ -61,24 +60,15 @@ var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 			consts.DESCRIBE_ISSUE,
 		),
 	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(
-			"Back to start page",
-			consts.BACK_TO_START,
-		),
-	))
+	backToStartButton,
+)
 
 var IntegrationPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	sdkApiLink,
 	integrationGuideLink,
 	productOverviewLink,
 	supportBotLink,
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(
-			"Back to start page",
-			consts.BACK_TO_START,
-		),
-	),
+	backToStartButton,
 )
 
 // admin pages keyboards
@@ -120,12 +110,12 @@ var (
 				consts.DELETE_MESSAGES_OF_USER,
 			),
 		),
-		// tgbotapi.NewInlineKeyboardRow(
-		// 	tgbotapi.NewInlineKeyboardButtonData(
-		// 		"🚷 Block user",
-		// 		consts.BLOCK_USER,
-		// 	),
-		// ),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"🚷 Block user",
+				consts.BLOCK_USER,
+			),
+		),
 	)
 
 	AdminSelectTimeForMsgCountPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -201,6 +191,7 @@ var (
 				consts.TIME_TO_MIN.Months_3,
 			),
 		),
+		backToStartButton,
 	)
 
 	AdminLinksPageKeyboard = IntegrationPageKeyboard
@@ -216,14 +207,8 @@ var (
 				consts.SHOW_MESSAGES,
 			),
 		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(
-				"Back to start page",
-				consts.BACK_TO_START,
-			),
-		))
-
-	AdminInputUserNamePageKeyboard = BackToStartKeyBoard
+		backToStartButton,
+	)
 
 	AdminOldOrNewMessagesPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
@@ -238,5 +223,6 @@ var (
 				consts.SHOW_ALL_MESSAGES,
 			),
 		),
+		backToStartButton,
 	)
 )

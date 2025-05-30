@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
@@ -62,11 +63,19 @@ func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 }
 
 func (this *AdminSelectMsgCountPage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	if this.errResp != "" {
+	if update.CallbackData() == consts.BACK_TO_START {
+		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
+	} else if this.errResp != "" {
 		return this
 	} else {
 		return NewAdminListOfMessagesPage(this.db, this.bot, this.adminQueryBuilder)
 	}
 }
 
+func (this *AdminSelectMsgCountPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+	return keyboards.BackToStartKeyBoard
+}
+
+var _ models.IPage = (*AdminSelectMsgCountPage)(nil)
+var _ models.IPageWithKeyboard = (*AdminSelectMsgCountPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*AdminSelectMsgCountPage)(nil)

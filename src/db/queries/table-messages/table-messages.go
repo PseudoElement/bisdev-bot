@@ -74,7 +74,7 @@ func (this T_Messages) DeleteMessages(count int) error {
 }
 
 func (this T_Messages) DeleteMessagesByUserName(userName string) error {
-	_, err := this.conn.Exec("DELETE FROM messages WHERE user_name = $1;", userName)
+	_, err := this.conn.Exec("DELETE FROM messages WHERE LOWER(user_name) LIKE LOWER($1);", userName)
 	return err
 }
 
@@ -84,8 +84,8 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 	hasNewMsgs := false
 
 	rows, err := this.conn.Query(`
-		SELECT * FROM messages WHERE user_name = $1 
-		ORDER BY created_at DESC LIMIT 10;`,
+		SELECT * FROM messages WHERE LOWER(user_name) LIKE LOWER($1)
+		ORDER BY created_at DESC;`,
 		userName,
 	)
 	if err != nil {
@@ -111,6 +111,20 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 	}
 
 	return messages, nil
+}
+
+func (this T_Messages) GetUserId(userName string) int64 {
+	var userId int64
+	err := this.conn.QueryRow(`
+		SELECT user_id FROM messages 
+		WHERE LOWER(user_name) LIKE LOWER($1)`,
+		userName,
+	).Scan(&userId)
+	if err != nil {
+		log.Println("[T_Messages_GetUserId] err =>", err)
+	}
+
+	return userId
 }
 
 func (this T_Messages) GetUserNames() (models.DB_UserNames, error) {

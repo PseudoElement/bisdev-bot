@@ -49,7 +49,7 @@ Or describe your problem here — I’ll log this and escalate it to our tech su
 
 func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	if this.errResp != "" {
-		return keyboards.EmptyBoard
+		return keyboards.BackToStartKeyBoard
 	}
 	return keyboards.SupportPageKeyboard
 }

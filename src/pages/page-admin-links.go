@@ -8,12 +8,12 @@ import (
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 )
 
-type LinksForAdminPage struct {
+type AdminLinksPage struct {
 	*Page
 }
 
-func NewAdminLinksPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *LinksForAdminPage {
-	p := &LinksForAdminPage{
+func NewAdminLinksPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuilder *query_builder.AdminQueryBuilder) *AdminLinksPage {
+	p := &AdminLinksPage{
 		Page: NewPage(db, bot, adminQueryBuilder),
 	}
 	p.setCurrenPage(p)
@@ -21,16 +21,20 @@ func NewAdminLinksPage(db models.IDatabase, bot *tgbotapi.BotAPI, adminQueryBuil
 	return p
 }
 
-func (this *LinksForAdminPage) Name() string {
+func (this *AdminLinksPage) AllowedOnlyCommands() bool {
+	return true
+}
+
+func (this *AdminLinksPage) Name() string {
 	return consts.ADMIN_LINKS_PAGE
 }
 
-func (this *LinksForAdminPage) RespText(update tgbotapi.Update) string {
+func (this *AdminLinksPage) RespText(update tgbotapi.Update) string {
 	return `🔗 Rubic links:`
 }
 
-func (this *LinksForAdminPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
+func (this *AdminLinksPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.AdminLinksPageKeyboard
 }
 
-var _ models.IPageWithKeyboard = (*LinksForAdminPage)(nil)
+var _ models.IPageWithKeyboard = (*AdminLinksPage)(nil)

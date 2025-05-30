@@ -37,7 +37,7 @@ type IPageWithActionOnInit interface {
 type IPageWithPhotos interface {
 	IPage
 
-	PhotosResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig
+	PhotosResp(update tgbotapi.Update) []tgbotapi.MediaGroupConfig
 
 	HasPhotos() bool
 }
@@ -45,7 +45,7 @@ type IPageWithPhotos interface {
 type IPageWithFiles interface {
 	IPage
 
-	FilesResp(update tgbotapi.Update) tgbotapi.MediaGroupConfig
+	FilesResp(update tgbotapi.Update) []tgbotapi.MediaGroupConfig
 
 	HasFiles() bool
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages"
 	query_builder "github.com/pseudoelement/rubic-buisdev-tg-bot/src/query-builder"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/store"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type BuisdevBot struct {
@@ -126,26 +127,29 @@ func (this *BuisdevBot) Listen() {
 }
 
 func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 	userId := update.Message.From.ID
 
 	switch update.Message.Text {
 	case "/start":
+		this.lastCommand = ""
 		if this.isAdmin(userId) {
 			this.pages[userId] = pages.NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
 		} else {
 			this.pages[userId] = pages.NewStartPage(this.db, this.bot, this.adminQueryBuilder)
 		}
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 		msg.Text = this.pages[userId].RespText(update)
 		msg.ReplyMarkup = this.pages[userId].(models.IPageWithKeyboard).Keyboard()
 
 		go this.bot.Send(msg)
 	default:
 		if update.Message.Text == "" && update.Message.Caption == "" {
-			msg.Text = "Message wihout text is not allowed to save."
-
-			go this.bot.Send(msg)
+			// ignored messages with media without text
+			// ignored all media pinned except first
+			return
 		} else if this.pages[userId].AllowedOnlyCommands() {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			msg.Text = "Select one option from the list."
 			msg.ReplyMarkup = this.pages[userId].(models.IPageWithKeyboard).Keyboard()
 
@@ -158,25 +162,27 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 
 			nextPage := this.pages[userId].NextPage(update, this.isAdmin(userId))
 			nextPageWithActionOnInit, withOnInit := nextPage.(models.IPageWithActionOnInit)
-			nextPageWithKeyboard, withKeyboard := nextPage.(models.IPageWithKeyboard)
 			nextPageWithPhotos, withPhotosInResp := nextPage.(models.IPageWithPhotos)
 			nextPageWithFiles, withFilesInResp := nextPage.(models.IPageWithFiles)
 
 			if withOnInit {
 				nextPageWithActionOnInit.ActionOnInit(update)
 			}
-			if withKeyboard {
-				msg.ReplyMarkup = nextPageWithKeyboard.Keyboard()
-			}
-			msg.Text = nextPage.RespText(update)
 
+			// @TODO add more than 10 files/photos per request
 			go func() {
-				this.bot.Send(msg)
+				this.sendTextResponse(update, nextPage)
 				if withPhotosInResp && nextPageWithPhotos.HasPhotos() {
-					this.bot.SendMediaGroup(nextPageWithPhotos.PhotosResp(update))
+					photoGroups := nextPageWithPhotos.PhotosResp(update)
+					for _, photoGroup := range photoGroups {
+						this.bot.SendMediaGroup(photoGroup)
+					}
 				}
 				if withFilesInResp && nextPageWithFiles.HasFiles() {
-					this.bot.SendMediaGroup(nextPageWithFiles.FilesResp(update))
+					photoGroups := nextPageWithFiles.FilesResp(update)
+					for _, photoGroup := range photoGroups {
+						this.bot.SendMediaGroup(photoGroup)
+					}
 				}
 			}()
 
@@ -194,7 +200,8 @@ func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 		go this.bot.Send(msg)
 	} else {
 		pageWithActionOnDestr, ok := this.pages[userId].(models.IPageWithActionOnDestroy)
-		if ok {
+		// skip onDestroy callback if want to get back to start
+		if ok && update.CallbackData() != consts.BACK_TO_START {
 			pageWithActionOnDestr.ActionOnDestroy(update)
 		}
 
@@ -226,8 +233,24 @@ func (this *BuisdevBot) handleBlockedUserRequest(update tgbotapi.Update) {
 	go this.bot.Send(msg)
 }
 
+// if response longer than 4000 characters - it splits it into chunks by 4000 chars per chunk
+func (this *BuisdevBot) sendTextResponse(update tgbotapi.Update, nextPage models.IPage) {
+	textChunks := utils.SplitLongTextForTg(nextPage.RespText(update))
+	nextPageWithKeyboard, withKeyboard := nextPage.(models.IPageWithKeyboard)
+
+	for idx, textChunk := range textChunks {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, textChunk)
+		// send keyboard with last chunk if needed
+		if idx == len(textChunks)-1 && withKeyboard {
+			msg.ReplyMarkup = nextPageWithKeyboard.Keyboard()
+		}
+
+		this.bot.Send(msg)
+	}
+}
+
 func (this *BuisdevBot) isBlockedUser(userId int64) bool {
-	for _, user := range this.store.GetBlockedUser() {
+	for _, user := range this.store.GetBlockedUsers() {
 		if userId == user.UserId {
 			return true
 		}

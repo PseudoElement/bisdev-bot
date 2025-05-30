@@ -22,3 +22,9 @@ type MessagesReq struct {
 	Count   int
 	NewOnly bool
 }
+
+type Admin struct {
+	ChatId   int64
+	UserName string
+	UserId   int64
+}

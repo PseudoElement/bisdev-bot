@@ -10,6 +10,7 @@ import (
 type Store struct {
 	db           *db.SqliteDB
 	blockedUsers []models.Db_BlockedUser
+	admins       []models.Admin
 }
 
 func NewStore(db *db.SqliteDB) *Store {
@@ -33,6 +34,6 @@ func (this *Store) LoadBlockedUsers() []models.Db_BlockedUser {
 	return this.blockedUsers
 }
 
-func (this *Store) GetBlockedUser() []models.Db_BlockedUser {
+func (this *Store) GetBlockedUsers() []models.Db_BlockedUser {
 	return this.blockedUsers
 }

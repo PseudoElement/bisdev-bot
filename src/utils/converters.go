@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+import (
+	"strings"
+
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+)
 
 func MimeTypeToSqlBlobType(mimetype string) string {
 	switch mimetype {
@@ -19,4 +23,8 @@ func MimeTypeToSqlBlobType(mimetype string) string {
 	default:
 		return consts.FILE_TYPES.Txt
 	}
+}
+
+func UserNameForSql(userName string) string {
+	return strings.ToLower(userName)
 }

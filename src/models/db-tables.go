@@ -31,6 +31,8 @@ type ITableMessages interface {
 	DeleteMessagesByUserName(userName string) error
 
 	GetUserNames() (DB_UserNames, error)
+
+	GetUserId(userName string) int64
 }
 
 type ITableMessagesCount interface {

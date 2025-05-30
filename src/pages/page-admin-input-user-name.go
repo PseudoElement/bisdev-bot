@@ -42,14 +42,18 @@ func (this *AdminInputUserNamePage) AllowedOnlyMessages() bool {
 }
 
 func (this *AdminInputUserNamePage) RespText(update tgbotapi.Update) string {
-	log.Println()
 	if this.errResp != "" {
 		return this.errResp
+	}
+	if this.warningResp != "" {
+		return this.warningResp
 	}
 
 	if len(this.userNames.NotRead) > 0 || len(this.userNames.AlreadyRead) > 0 {
 		if this.commandName == consts.SHOW_MESSAGES_OF_SPECIFIC_USER {
 			return this.respForShowMessages(update)
+		} else if this.commandName == consts.BLOCK_USER {
+			return this.respForBlockUser(update)
 		} else {
 			return this.respForDeletion(update)
 		}
@@ -65,12 +69,11 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 	for _, name := range allUserNames {
 		if strings.ToLower(name) == strings.ToLower(userNameFromInput) {
 			if this.commandName == consts.DELETE_MESSAGES_OF_USER {
-				go func() {
-					err := this.db.Tables().Messages.DeleteMessagesByUserName(userNameFromInput)
-					if err != nil {
-						log.Println("[AdminInputUserNamePage_ActionOnDestroy] Delete_err ==>", err)
-					}
-				}()
+				go this.onDestroyDeleteMsgsOfUser(update)
+			}
+			if this.commandName == consts.BLOCK_USER {
+				// not in goroutine cause need check if user is admin
+				this.onDestroyBlockUser(update)
 			}
 			this.setErrorResp("")
 			return
@@ -85,9 +88,7 @@ func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
 	userNames, err := this.db.Tables().Messages.GetUserNames()
 	if err != nil {
 		log.Println("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>", err)
-		// @TODO uncomment
-		// this.setErrorResp("Server error.")
-		this.setErrorResp("[AdminInputUserNamePage_ActionOnInit] GetUserNames_err ==>" + err.Error())
+		this.setErrorResp("Server error.")
 		return
 	}
 	this.userNames = userNames
@@ -97,11 +98,13 @@ func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
 func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 	if this.TextFromClient(update) == consts.BACK_TO_START {
 		return NewAdminStartPage(this.db, this.bot, this.adminQueryBuilder)
-	} else if this.errResp != "" {
+	} else if this.errResp != "" || this.warningResp != "" {
 		return this
 	} else {
 		if this.commandName == consts.DELETE_MESSAGES_OF_USER {
 			return NewAdminInfoAfterDeletionPage(this.db, this.bot, this.adminQueryBuilder)
+		} else if this.commandName == consts.BLOCK_USER {
+			return NewNotificationAfterBlockUserPage(this.db, this.bot, this.adminQueryBuilder)
 		} else {
 			// consts.SHOW_MESSAGES_OF_SPECIFIC_USER
 			return NewAdminListOfSingleUserMsgsPage(this.db, this.bot, this.adminQueryBuilder)
@@ -110,7 +113,7 @@ func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin boo
 }
 
 func (this *AdminInputUserNamePage) Keyboard() tgbotapi.InlineKeyboardMarkup {
-	return keyboards.AdminInputUserNamePageKeyboard
+	return keyboards.BackToStartKeyBoard
 }
 
 func (this *AdminInputUserNamePage) respForDeletion(update tgbotapi.Update) string {
@@ -136,6 +139,43 @@ func (this *AdminInputUserNamePage) respForShowMessages(update tgbotapi.Update) 
 	}
 
 	return str.String()
+}
+
+func (this *AdminInputUserNamePage) respForBlockUser(update tgbotapi.Update) string {
+	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
+	uniqueNames := utils.FilterUnique(allUserNames)
+	str := bytes.NewBufferString("Input username you want to block from the list below:\n\n")
+	str.WriteString(strings.Join(uniqueNames, ", "))
+
+	return str.String()
+}
+
+// here userName 100% existing
+func (this *AdminInputUserNamePage) onDestroyBlockUser(update tgbotapi.Update) {
+	userName := this.TextFromClient(update)
+	isAdmin := this.IsUserAdmin(userName)
+	if isAdmin {
+		this.setErrorResp(userName + "is admin. You're not allowed to block another admin.")
+		return
+	}
+
+	go func() {
+		err := this.db.Tables().BlockedUsers.BlockUser(userName)
+		if err != nil {
+			log.Println("[AdminInputUserNamePage_onDestroyBlockUser] BlockUser_err ==>", err)
+		}
+	}()
+
+	this.setErrorResp("")
+}
+
+// here userName 100% existing
+func (this *AdminInputUserNamePage) onDestroyDeleteMsgsOfUser(update tgbotapi.Update) {
+	userName := this.TextFromClient(update)
+	err := this.db.Tables().Messages.DeleteMessagesByUserName(userName)
+	if err != nil {
+		log.Println("[AdminInputUserNamePage_onDestroyDeleteMsgsOfUser] Delete_err ==>", err)
+	}
 }
 
 var _ models.IPageWithActionOnDestroy = (*AdminInputUserNamePage)(nil)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"unicode/utf8"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
@@ -35,8 +36,8 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
 	}
-	if len(this.TextFromClient(update)) > 500 {
-		this.setErrorResp("Too long message. Max length is 500 chars")
+	if utf8.RuneCountInString(this.TextFromClient(update)) > 1000 {
+		this.setErrorResp("Too large message.")
 		return
 	}
 
@@ -65,6 +66,7 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 			dbMsg.Blob = buf
 			dbMsg.BlobType = utils.MimeTypeToSqlBlobType(doc.MimeType)
 		} else {
+			log.Println("mimetype_error")
 			this.setErrorResp(doc.MimeType + " file format is not supported.")
 			return
 		}
