@@ -23,12 +23,14 @@ func (this *Notifier) Chan() <-chan any {
 }
 
 func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgFromClient) {
-	this.notificationChan <- NotificationNewMessage{
+	notification := NotificationNewMessage{
 		FromUserName: msg.UserName,
 		FromInitials: msg.Initials,
 		Text:         msg.Text,
 		WithFiles:    len(msg.Blob) > 0,
 	}
+	log.Printf("[Notifier_NotifyAdminsOnBlockedUsers] block_notification ==> %+v\n", notification)
+	this.notificationChan <- notification
 }
 
 func (this *Notifier) NotifyAdminsOnBlockedUsers(userName string, adminName string) {
