@@ -4,7 +4,8 @@ type NotificationNewMessage struct {
 	FromUserName string
 	FromInitials string
 	Text         string
-	WithFiles    bool
+	FileID       string
+	FileType     string
 }
 
 type NotificationBlockUser struct {

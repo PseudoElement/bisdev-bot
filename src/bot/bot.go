@@ -119,13 +119,13 @@ func (this *BuisdevBot) ListenNotifier() {
 		switch note.(type) {
 		case notifier.NotificationBlockUser:
 			v := note.(notifier.NotificationBlockUser)
-			go this.sendBlockInfoToAdmins(v)
+			this.sendBlockInfoToAdmins(v)
 		case notifier.NotificationUnblockUser:
 			v := note.(notifier.NotificationUnblockUser)
-			go this.sendUnblockInfoToAdmins(v)
+			this.sendUnblockInfoToAdmins(v)
 		case notifier.NotificationNewMessage:
 			v := note.(notifier.NotificationNewMessage)
-			go this.sendNewMessageToAdmins(v)
+			this.sendNewMessageToAdmins(v)
 		default:
 			log.Println("!!!NOTE: unknown note type %v", note)
 		}
@@ -271,32 +271,48 @@ func (this *BuisdevBot) sendTextResponse(update tgbotapi.Update, nextPage models
 }
 
 func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMessage) {
-	for _, admin := range this.injector.Store.GetAdmins() {
-		text := "✉️ New message from " + note.FromInitials + "(@" + note.FromUserName + ")\n"
-		if note.WithFiles {
-			text += "Contains pinned file, to see file - use 👤 Show messages of specific user.\n"
+	var file any = nil
+	if note.FileID != "" {
+		fileId := tgbotapi.FileID(note.FileID)
+		if utils.IsDoc(note.FileType) {
+			file = tgbotapi.NewInputMediaDocument(fileId)
 		}
-		text += "Message:\n" + note.Text
-		msg := tgbotapi.NewMessage(admin.ChatId, text)
+		if utils.IsImg(note.FileType) {
+			file = tgbotapi.NewInputMediaPhoto(fileId)
+		}
+	}
 
-		this.bot.Send(msg)
+	text := "✉️ New message from " + note.FromInitials + "(@" + note.FromUserName + ")\n"
+	text += "Message:\n" + note.Text
+
+	for _, admin := range this.injector.Store.GetAdmins() {
+		go func(adm models.Admin) {
+			msg := tgbotapi.NewMessage(adm.ChatId, text)
+			this.bot.Send(msg)
+			if file != nil {
+				mg := tgbotapi.NewMediaGroup(adm.ChatId, []any{file})
+				this.bot.SendMediaGroup(mg)
+			}
+		}(admin)
 	}
 }
 
 func (this *BuisdevBot) sendBlockInfoToAdmins(note notifier.NotificationBlockUser) {
 	for _, admin := range this.injector.Store.GetAdmins() {
-		text := fmt.Sprintf("🚷 %s blocked user %s.", note.AdminUserName, note.BlockedUserName)
-		msg := tgbotapi.NewMessage(admin.ChatId, text)
-
-		this.bot.Send(msg)
+		go func(adm models.Admin) {
+			text := fmt.Sprintf("🚷 %s blocked user %s.", note.AdminUserName, note.BlockedUserName)
+			msg := tgbotapi.NewMessage(adm.ChatId, text)
+			this.bot.Send(msg)
+		}(admin)
 	}
 }
 
 func (this *BuisdevBot) sendUnblockInfoToAdmins(note notifier.NotificationUnblockUser) {
 	for _, admin := range this.injector.Store.GetAdmins() {
-		text := fmt.Sprintf("💫 %s unblocked user %s.", note.AdminUserName, note.UnblockedUserName)
-		msg := tgbotapi.NewMessage(admin.ChatId, text)
-
-		this.bot.Send(msg)
+		go func(adm models.Admin) {
+			text := fmt.Sprintf("💫 %s unblocked user %s.", note.AdminUserName, note.UnblockedUserName)
+			msg := tgbotapi.NewMessage(adm.ChatId, text)
+			this.bot.Send(msg)
+		}(admin)
 	}
 }

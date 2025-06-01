@@ -41,12 +41,16 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		return
 	}
 
-	dbMsg := models.UserMsgFromClient{
+	dbMsg := &models.UserMsgFromClient{
 		UserName:  this.UserName(update),
 		UserId:    this.UserID(update),
 		Initials:  fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
 		Text:      this.TextFromClient(update),
 		CreatedAt: utils.GetSqlTimestampByMinutesUTC(0, false),
+	}
+	msgForNotifier := models.UserMsgWithFileID{
+		UserMsgFromClient: dbMsg,
+		FileID:            "",
 	}
 
 	doc := update.Message.Document
@@ -65,6 +69,7 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 
 			dbMsg.Blob = buf
 			dbMsg.BlobType = utils.MimeTypeToSqlBlobType(doc.MimeType)
+			msgForNotifier.FileID = fileId
 		} else {
 			log.Println("mimetype_error")
 			this.setErrorResp(doc.MimeType + " file format is not supported.")
@@ -87,20 +92,20 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		}
 
 		dbMsg.Blob = buf
-		// @TODO check if need handle different image extensions
 		dbMsg.BlobType = consts.FILE_TYPES.Png
+		msgForNotifier.FileID = fileId
 	}
 
 	this.setErrorResp("")
 
 	go func() {
-		err := this.injector.Db.Tables().Messages.AddMessage(dbMsg)
+		err := this.injector.Db.Tables().Messages.AddMessage(*dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] Messages_AddMessage err ==> ", err)
 		}
-		this.injector.Notifier.NotifyAdminsOnNewMsg(dbMsg)
+		this.injector.Notifier.NotifyAdminsOnNewMsg(msgForNotifier)
 
-		err = this.injector.Db.Tables().MessagesCount.AddMessage(dbMsg)
+		err = this.injector.Db.Tables().MessagesCount.AddMessage(*dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)
 		}

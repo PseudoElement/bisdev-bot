@@ -36,7 +36,7 @@ func (this *AdminListOfSingleUserMsgsPage) Name() string {
 
 func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 	for _, msg := range this.messages {
-		if this.isImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			return true
 		}
 	}
@@ -46,7 +46,7 @@ func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 
 func (this *AdminListOfSingleUserMsgsPage) HasFiles() bool {
 	for _, msg := range this.messages {
-		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			return true
 		}
 	}
@@ -94,7 +94,7 @@ func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) []t
 			filesChunks = append(filesChunks, make([]interface{}, 0, 10))
 		}
 
-		if this.isDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
 			fileName := "file_" + strconv.Itoa(idx+1) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
@@ -104,7 +104,6 @@ func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) []t
 		}
 	}
 
-	// check if approach by index to filesChunks not buggy
 	mediagroups := make([]tgbotapi.MediaGroupConfig, len(filesChunks), len(filesChunks))
 	for idx, filesChunk := range filesChunks {
 		mg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, filesChunk)
@@ -130,7 +129,7 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) []
 			photosChunks = append(photosChunks, make([]interface{}, 0, 10))
 		}
 
-		if this.isImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
 			buf := msg.Blob
 			fileName := "img_" + strconv.Itoa(idx+1) + "." + msg.BlobType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
@@ -140,10 +139,9 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) []
 		}
 	}
 
-	// check if approach by index to filesChunks not buggy
 	mediagroups := make([]tgbotapi.MediaGroupConfig, len(photosChunks), len(photosChunks))
-	for idx, filesChunk := range photosChunks {
-		mg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, filesChunk)
+	for idx, photosChunk := range photosChunks {
+		mg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, photosChunk)
 		mediagroups[idx] = mg
 	}
 
@@ -177,24 +175,6 @@ func (this *AdminListOfSingleUserMsgsPage) NextPage(update tgbotapi.Update, isAd
 		return this
 	}
 	return NewAdminStartPage(this.injector)
-}
-
-func (this *AdminListOfSingleUserMsgsPage) isImg(blobType string) bool {
-	for _, t := range consts.IMAGES_FILE_TYPES {
-		if t == blobType {
-			return true
-		}
-	}
-	return false
-}
-
-func (this *AdminListOfSingleUserMsgsPage) isDoc(blobType string) bool {
-	for _, t := range consts.DOC_FILE_TYPES {
-		if t == blobType {
-			return true
-		}
-	}
-	return false
 }
 
 var _ models.IPageWithKeyboard = (*AdminListOfSingleUserMsgsPage)(nil)
