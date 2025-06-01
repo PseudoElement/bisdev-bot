@@ -5,8 +5,8 @@ type UserMsgFromClient struct {
 	UserName  string
 	Initials  string
 	Text      string
-	BlobType  string
-	Blob      []byte
+	FileType  string
+	FileID    string
 	CreatedAt string
 }
 
@@ -19,8 +19,8 @@ type MsgFromClientForLog struct {
 	UserName string
 	Initials string
 	Text     string
-	BlobLen  int
-	BlobType string
+	FileID   string
+	FileType string
 }
 
 type MessagesReq struct {

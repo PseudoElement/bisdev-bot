@@ -2,9 +2,7 @@ package pages
 
 import (
 	"log"
-	"os"
 	"strconv"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
@@ -14,9 +12,7 @@ import (
 
 type Page struct {
 	injector *injector.AppInjector
-	// db                models.IDatabase
-	// adminQueryBuilder *query_builder.AdminQueryBuilder
-	bot *tgbotapi.BotAPI
+	bot      *tgbotapi.BotAPI
 	// should be set in child structs
 	currPage    models.IPage
 	errResp     string
@@ -25,8 +21,6 @@ type Page struct {
 
 func NewPage(injector *injector.AppInjector) *Page {
 	return &Page{
-		// db:                db,
-		// adminQueryBuilder: adminQueryBuilder,
 		injector:    injector,
 		bot:         injector.Bot,
 		currPage:    nil,
@@ -90,25 +84,6 @@ func (this *Page) TextFromClient(update tgbotapi.Update) string {
 		return update.CallbackData()
 	}
 	return ""
-}
-
-// @REDACTOR keep admins list in store
-func (this *Page) IsUserAdmin(userName string) bool {
-	userId := this.injector.Db.Tables().Messages.GetUserId(userName)
-
-	adminsString, ok := os.LookupEnv("ADMINS")
-	if !ok {
-		return false
-	}
-	admins := strings.Split(adminsString, " ")
-
-	for _, adminId := range admins {
-		if strconv.Itoa(int(userId)) == adminId {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {

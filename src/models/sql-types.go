@@ -9,8 +9,8 @@ type DB_UserMessage struct {
 	Initials string
 	Text     string
 	New      bool
-	Blob     []byte
-	BlobType string
+	FileType string
+	FileID   string
 }
 
 type DB_UserNames struct {

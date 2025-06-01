@@ -41,16 +41,14 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		return
 	}
 
-	dbMsg := &models.UserMsgFromClient{
+	dbMsg := models.UserMsgFromClient{
 		UserName:  this.UserName(update),
 		UserId:    this.UserID(update),
 		Initials:  fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
 		Text:      this.TextFromClient(update),
 		CreatedAt: utils.GetSqlTimestampByMinutesUTC(0, false),
-	}
-	msgForNotifier := models.UserMsgWithFileID{
-		UserMsgFromClient: dbMsg,
-		FileID:            "",
+		FileType:  "",
+		FileID:    "",
 	}
 
 	doc := update.Message.Document
@@ -62,14 +60,8 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 			}
 
 			fileId := update.Message.Document.FileID
-			buf, err := utils.ReadUploadedFile(this.bot, fileId)
-			if err != nil {
-				log.Printf("[%s_ActionOnDestroy] Document_ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
-			}
-
-			dbMsg.Blob = buf
-			dbMsg.BlobType = utils.MimeTypeToSqlBlobType(doc.MimeType)
-			msgForNotifier.FileID = fileId
+			dbMsg.FileID = fileId
+			dbMsg.FileType = utils.MimeTypeToSqlBlobType(doc.MimeType)
 		} else {
 			log.Println("mimetype_error")
 			this.setErrorResp(doc.MimeType + " file format is not supported.")
@@ -86,26 +78,20 @@ func (this *AbstrUserInputPage) ActionOnDestroy(update tgbotapi.Update) {
 		}
 
 		fileId := bestQualityPic.FileID
-		buf, err := utils.ReadUploadedFile(this.bot, fileId)
-		if err != nil {
-			log.Printf("[%s_ActionOnDestroy] ReadUploadedFile_err ==> %v\n", this.CurrPage().Name(), err)
-		}
-
-		dbMsg.Blob = buf
-		dbMsg.BlobType = consts.FILE_TYPES.Png
-		msgForNotifier.FileID = fileId
+		dbMsg.FileID = fileId
+		dbMsg.FileType = consts.FILE_TYPES.Png
 	}
 
 	this.setErrorResp("")
 
 	go func() {
-		err := this.injector.Db.Tables().Messages.AddMessage(*dbMsg)
+		err := this.injector.Db.Tables().Messages.AddMessage(dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] Messages_AddMessage err ==> ", err)
 		}
-		this.injector.Notifier.NotifyAdminsOnNewMsg(msgForNotifier)
+		this.injector.Notifier.NotifyAdminsOnNewMsg(dbMsg)
 
-		err = this.injector.Db.Tables().MessagesCount.AddMessage(*dbMsg)
+		err = this.injector.Db.Tables().MessagesCount.AddMessage(dbMsg)
 		if err != nil {
 			log.Println("[IssueDescriptionPage_ActionOnDestroy] MessagesCount_AddMessage err ==> ", err)
 		}

@@ -22,13 +22,13 @@ func (this *Notifier) Chan() <-chan any {
 	return this.notificationChan
 }
 
-func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgWithFileID) {
+func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgFromClient) {
 	notification := NotificationNewMessage{
 		FromUserName: msg.UserName,
 		FromInitials: msg.Initials,
 		Text:         msg.Text,
 		FileID:       msg.FileID,
-		FileType:     msg.BlobType,
+		FileType:     msg.FileType,
 	}
 	log.Printf("[Notifier_NotifyAdminsOnNewMsg] newMsg_notification ==> %+v\n", notification)
 	this.notificationChan <- notification

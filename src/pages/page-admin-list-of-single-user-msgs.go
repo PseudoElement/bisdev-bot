@@ -36,7 +36,7 @@ func (this *AdminListOfSingleUserMsgsPage) Name() string {
 
 func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 	for _, msg := range this.messages {
-		if utils.IsImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsImg(msg.FileType) && msg.FileID != "" {
 			return true
 		}
 	}
@@ -46,7 +46,7 @@ func (this *AdminListOfSingleUserMsgsPage) HasPhotos() bool {
 
 func (this *AdminListOfSingleUserMsgsPage) HasFiles() bool {
 	for _, msg := range this.messages {
-		if utils.IsDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
+		if utils.IsDoc(msg.FileType) && msg.FileID != "" {
 			return true
 		}
 	}
@@ -94,9 +94,13 @@ func (this *AdminListOfSingleUserMsgsPage) FilesResp(update tgbotapi.Update) []t
 			filesChunks = append(filesChunks, make([]interface{}, 0, 10))
 		}
 
-		if utils.IsDoc(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
-			buf := msg.Blob
-			fileName := "file_" + strconv.Itoa(idx+1) + "." + msg.BlobType
+		if utils.IsDoc(msg.FileType) && msg.FileID != "" {
+			buf, err := utils.GetBytesByTgFileID(this.bot, msg.FileID)
+			if err != nil {
+				log.Println("[AdminListOfSingleUserMsgsPage_FilesResp] GetBytesByTgFileID_err ==>", err)
+			}
+
+			fileName := "file_" + strconv.Itoa(idx+1) + "." + msg.FileType
 			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
 			document := tgbotapi.NewInputMediaDocument(fileBytes)
 
@@ -129,13 +133,17 @@ func (this *AdminListOfSingleUserMsgsPage) PhotosResp(update tgbotapi.Update) []
 			photosChunks = append(photosChunks, make([]interface{}, 0, 10))
 		}
 
-		if utils.IsImg(msg.BlobType) && msg.Blob != nil && len(msg.Blob) > 0 {
-			buf := msg.Blob
-			fileName := "img_" + strconv.Itoa(idx+1) + "." + msg.BlobType
-			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
-			document := tgbotapi.NewInputMediaDocument(fileBytes)
+		if utils.IsImg(msg.FileType) && msg.FileID != "" {
+			buf, err := utils.GetBytesByTgFileID(this.bot, msg.FileID)
+			if err != nil {
+				log.Println("[AdminListOfSingleUserMsgsPage_PhotosResp] GetBytesByTgFileID_err ==>", err)
+			}
 
-			photosChunks[currPhotosChunk] = append(photosChunks[currPhotosChunk], document)
+			fileName := "img_" + strconv.Itoa(idx+1) + "." + msg.FileType
+			fileBytes := tgbotapi.FileBytes{Name: fileName, Bytes: buf}
+			photoFile := tgbotapi.NewInputMediaDocument(fileBytes)
+
+			photosChunks[currPhotosChunk] = append(photosChunks[currPhotosChunk], photoFile)
 		}
 	}
 

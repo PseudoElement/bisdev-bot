@@ -10,19 +10,22 @@ import (
 )
 
 func (this T_Messages) AddMessage(msg models.UserMsgFromClient) error {
-	log.Printf("[T_Messages_AddMessages] msg ==> %+v", models.MsgFromClientForLog{msg.UserName, msg.Initials, msg.Text, len(msg.Blob), msg.BlobType})
+	log.Printf("[T_Messages_AddMessages] msg ==> %+v", msg)
 
 	var err error
-	if msg.Blob != nil && len(msg.Blob) > 0 {
+	if msg.FileID != "" {
 		_, err = this.conn.Exec(
-			`INSERT INTO messages (user_id, user_name, initials, text, new, blob_type, blob, created_at) 
+			`INSERT INTO messages (user_id, user_name, initials, text, new, file_type, file_id, created_at) 
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
-			msg.UserId, msg.UserName, msg.Initials, msg.Text, true, msg.BlobType, msg.Blob, msg.CreatedAt)
+			msg.UserId, msg.UserName, msg.Initials, msg.Text, true, msg.FileType, msg.FileID, msg.CreatedAt)
 	} else {
 		_, err = this.conn.Exec(
 			`INSERT INTO messages (user_id, user_name, initials, text, new, created_at) 
 			VALUES ($1, $2, $3, $4, $5, $6);`,
 			msg.UserId, msg.UserName, msg.Initials, msg.Text, true, msg.CreatedAt)
+	}
+	if err != nil {
+		log.Println("[T_Messages_AddMessage] err ==>", err)
 	}
 
 	return err
@@ -58,7 +61,7 @@ func (this T_Messages) GetMessages(req models.MessagesReq) ([]models.DB_UserMess
 		messages = append(messages, msg)
 	}
 
-	if len(messages) > 0 && hasNewMsgs {
+	if hasNewMsgs {
 		go this.markMessagesAsRead(messages)
 	}
 
@@ -95,7 +98,7 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 
 	for rows.Next() {
 		msg := models.DB_UserMessage{}
-		err := rows.Scan(&msg.Id, &msg.UserId, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.BlobType, &msg.Blob, &msg.CreatedAt)
+		err := rows.Scan(&msg.Id, &msg.UserId, &msg.UserName, &msg.Initials, &msg.Text, &msg.New, &msg.FileType, &msg.FileID, &msg.CreatedAt)
 		if err != nil {
 			return messages, err
 		}
@@ -106,7 +109,7 @@ func (this T_Messages) GetMessagesByUserName(userName string) ([]models.DB_UserM
 		messages = append(messages, msg)
 	}
 
-	if len(messages) > 0 && hasNewMsgs {
+	if hasNewMsgs {
 		go this.markMessagesAsRead(messages)
 	}
 

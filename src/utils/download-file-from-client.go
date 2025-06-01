@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func ReadUploadedFile(bot *tgbotapi.BotAPI, fileID string) ([]byte, error) {
+func GetBytesByTgFileID(bot *tgbotapi.BotAPI, fileID string) ([]byte, error) {
 	// Get file info
 	file, err := bot.GetFile(tgbotapi.FileConfig{FileID: fileID})
 	if err != nil {

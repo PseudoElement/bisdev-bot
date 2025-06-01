@@ -26,8 +26,8 @@ func (this T_Messages) CreateTable() error {
 			initials VARCHAR(50) NOT NULL,
             text TEXT NOT NULL,
             new BOOLEAN NOT NULL,
-			blob_type VARCHAR(50) CHECK(blob_type IN ('%s', '%s', '%s', '%s', '%s', '%s', '')) DEFAULT '',
-			blob BLOB,
+			file_type VARCHAR(50) CHECK(file_type IN ('%s', '%s', '%s', '%s', '%s', '%s', '')) DEFAULT '',
+			file_id VARCHAR(150),
             created_at TMESTAMP DEFAULT CURRENT_TIMESTAMP
         );`, consts.FILE_TYPES.Doc, consts.FILE_TYPES.Csv, consts.FILE_TYPES.Txt, consts.FILE_TYPES.Pdf, consts.FILE_TYPES.Jpeg, consts.FILE_TYPES.Png),
 	)

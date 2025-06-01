@@ -80,7 +80,7 @@ func (this *AdminInputUserNamePage) ActionOnDestroy(update tgbotapi.Update) {
 				// not in goroutine cause need check if user is admin
 				this.onDestroyBlockUser(update)
 			}
-
+			this.setErrorResp("")
 			return
 		}
 	}
