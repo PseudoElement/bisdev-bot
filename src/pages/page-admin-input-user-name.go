@@ -11,6 +11,7 @@ import (
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/pages/keyboards"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
+	sl_utils "github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils/slices"
 )
 
 type AdminInputUserNamePage struct {
@@ -147,7 +148,9 @@ func (this *AdminInputUserNamePage) respForDeletion(update tgbotapi.Update) stri
 	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
 	uniqueNames := utils.FilterUnique(allUserNames)
 	str := bytes.NewBufferString("Input username you want to delete from the list below:\n\n")
-	str.WriteString(strings.Join(uniqueNames, ", "))
+	str.WriteString(
+		strings.Join(sl_utils.Map(uniqueNames, this.userNameModifier), ", "),
+	)
 
 	return str.String()
 }
@@ -156,13 +159,17 @@ func (this *AdminInputUserNamePage) respForShowMessages(update tgbotapi.Update) 
 	str := bytes.NewBufferString("Input username you want to check from the list below:\n\n")
 	if len(this.userNames.NotRead) > 0 {
 		str.WriteString("New messages from:\n")
-		str.WriteString(strings.Join(this.userNames.NotRead, ", "))
+		str.WriteString(
+			strings.Join(sl_utils.Map(this.userNames.NotRead, this.userNameModifier), ", "),
+		)
 		str.WriteString("\n\n")
 	}
 
 	if len(this.userNames.AlreadyRead) > 0 {
 		str.WriteString("Already read messages from:\n")
-		str.WriteString(strings.Join(this.userNames.AlreadyRead, ", "))
+		str.WriteString(
+			strings.Join(sl_utils.Map(this.userNames.AlreadyRead, this.userNameModifier), ", "),
+		)
 	}
 
 	return str.String()
@@ -172,7 +179,9 @@ func (this *AdminInputUserNamePage) respForBlockUser(update tgbotapi.Update) str
 	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
 	uniqueNames := utils.FilterUnique(allUserNames)
 	str := bytes.NewBufferString("Input username you want to block from the list below:\n\n")
-	str.WriteString(strings.Join(uniqueNames, ", "))
+	str.WriteString(
+		strings.Join(sl_utils.Map(uniqueNames, this.userNameModifier), ", "),
+	)
 
 	return str.String()
 }
@@ -181,7 +190,9 @@ func (this *AdminInputUserNamePage) respForUnblockUser(update tgbotapi.Update) s
 	allUserNames := append(this.userNames.AlreadyRead, this.userNames.NotRead...)
 	uniqueNames := utils.FilterUnique(allUserNames)
 	str := bytes.NewBufferString("Input username you want to unblock from the blacklist below:\n\n")
-	str.WriteString(strings.Join(uniqueNames, ", "))
+	str.WriteString(
+		strings.Join(sl_utils.Map(uniqueNames, this.userNameModifier), ", "),
+	)
 
 	return str.String()
 }
@@ -229,6 +240,10 @@ func (this *AdminInputUserNamePage) onDestroyDeleteMsgsOfUser(update tgbotapi.Up
 	}
 
 	this.setErrorResp("")
+}
+
+func (this *AdminInputUserNamePage) userNameModifier(userName string, idx int, sliceLen int) string {
+	return "@" + userName
 }
 
 var _ models.IPageWithActionOnDestroy = (*AdminInputUserNamePage)(nil)
