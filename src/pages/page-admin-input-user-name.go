@@ -120,7 +120,6 @@ func (this *AdminInputUserNamePage) ActionOnInit(update tgbotapi.Update) {
 }
 
 func (this *AdminInputUserNamePage) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
-	log.Println("[AdminInputUserNamePage_NextPage] commandName - ", this.commandName, " err - ", this.errResp)
 	if this.TextFromClient(update) == consts.BACK_TO_START {
 		return NewAdminStartPage(this.injector)
 	} else if this.errResp != "" || this.warningResp != "" {
