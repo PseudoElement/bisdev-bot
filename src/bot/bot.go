@@ -17,16 +17,13 @@ import (
 )
 
 type BuisdevBot struct {
-	bot *tgbotapi.BotAPI
-	// db                *db.SqliteDB
-	isProd      bool
-	lastCommand string
-	// admins            []string
-	// adminQueryBuilder *query_builder.AdminQueryBuilder
+	bot    *tgbotapi.BotAPI
+	isProd bool
 	// key is userId
 	pages map[int64]models.IPage
-	// store    *store.Store
-	injector *injector.AppInjector
+	// key is userId
+	lastCommands map[int64]string
+	injector     *injector.AppInjector
 }
 
 func NewBuisdevBot() *BuisdevBot {
@@ -49,11 +46,11 @@ func NewBuisdevBot() *BuisdevBot {
 	injector := injector.NewAppInjector(bot)
 
 	b := &BuisdevBot{
-		bot:         bot,
-		isProd:      isProd,
-		pages:       make(map[int64]models.IPage, 10),
-		lastCommand: "",
-		injector:    injector,
+		bot:          bot,
+		isProd:       isProd,
+		pages:        make(map[int64]models.IPage, 10),
+		lastCommands: make(map[int64]string, 10),
+		injector:     injector,
 	}
 
 	return b
@@ -85,6 +82,10 @@ func (this *BuisdevBot) ListenUpdates() {
 				this.pages[userId] = pages.NewStartPage(this.injector)
 			}
 		}
+		_, ok = this.lastCommands[userId]
+		if !ok {
+			this.lastCommands[userId] = ""
+		}
 
 		if update.Message != nil {
 			fmt.Printf("[%s][%s %s] userId - %v, text - %s,  caption - %s, command - %s, photos_count - %d.\n",
@@ -99,7 +100,7 @@ func (this *BuisdevBot) ListenUpdates() {
 			)
 
 			this.handleMessageRequest(update)
-		} else if update.CallbackQuery != nil && update.CallbackData() != this.lastCommand {
+		} else if update.CallbackQuery != nil && update.CallbackData() != this.lastCommands[userId] {
 			fmt.Printf("[%s][%s %s] userId - %v, Data - %s\n",
 				update.CallbackQuery.From.UserName,
 				update.CallbackQuery.From.FirstName,
@@ -108,7 +109,7 @@ func (this *BuisdevBot) ListenUpdates() {
 				update.CallbackData(),
 			)
 
-			this.lastCommand = update.CallbackData()
+			this.lastCommands[userId] = update.CallbackData()
 			this.handleCallbackRequest(update)
 		}
 	}
@@ -141,7 +142,7 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 
 	switch update.Message.Text {
 	case "/start":
-		this.lastCommand = ""
+		this.lastCommands[userId] = ""
 		if this.injector.Store.IsAdminById(userId) {
 			this.pages[userId] = pages.NewAdminStartPage(this.injector)
 		} else {
