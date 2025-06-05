@@ -35,16 +35,16 @@ func (this *SupportPage) RespText(update tgbotapi.Update) string {
 		return this.errResp
 	}
 
-	return `Sorry to hear you're having trouble 😔. Let me help.
-Can you please provide:
+	return `Sorry to hear you're having trouble 😔 Let's sort it out.
+Please provide:
 - A short description of the issue
-- Tx Hash (if relevant)
-- Network / Tokens involved
+- Tx Hash (if applicable)
+- Network and tokens involved
 - Device & browser (if on web)
-- Screenshot (no more than 1 image per request)
+- Screenshot (one image max per request)
 
-🔧 For faster help, feel free to head to our support Telegram: https://t.me/RubicSupportBot.
-Or describe your problem here — I’ll log this and escalate it to our tech support team.`
+🔧 For faster assistance, you can also contact our support team directly: https://t.me/RubicSupportBot.
+Or just describe your issue here — I'll forward it to our tech team.`
 }
 
 func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {

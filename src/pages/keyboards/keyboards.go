@@ -56,7 +56,7 @@ var SupportPageKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData(
-			"Describe issue.",
+			"Describe issue",
 			consts.DESCRIBE_ISSUE,
 		),
 	),
