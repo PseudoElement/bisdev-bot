@@ -33,14 +33,14 @@ func (this *PartnershipPage) RespText(update tgbotapi.Update) string {
 
 	return `Awesome!🙌 Let's explore a potential collaboration.
 
-Can you share the following:
+Could you please share the following:
 - Project name
 - Website
 - Your role
-- Your main goal with us? (integration / liquidity aggregation / mutual routing / co-marketing / other)
-- Screenshot (no more than 1 image per request)
+- What are you looking for? (integration / liquidity aggregation / mutual routing / co-marketing / other)
+- Screenshot (one image max per request)
 
-Once you're done, I’ll share this with our BD team and we’ll follow up fast.  `
+Once submitted, I'll share this with our BD team — they'll get back to you shortly.`
 }
 
 func (this *PartnershipPage) Keyboard() tgbotapi.InlineKeyboardMarkup {

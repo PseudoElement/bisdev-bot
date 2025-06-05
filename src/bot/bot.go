@@ -161,7 +161,7 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 			return
 		} else if this.pages[userId].AllowedOnlyCommands() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-			msg.Text = "Select one option from the list."
+			msg.Text = "Select one option from the list"
 			msg.ReplyMarkup = this.pages[userId].(models.IPageWithKeyboard).Keyboard()
 
 			go this.bot.Send(msg)

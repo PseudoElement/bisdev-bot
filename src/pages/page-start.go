@@ -33,8 +33,9 @@ func (this *StartPage) AllowedOnlyCommands() bool {
 
 func (this *StartPage) RespText(update tgbotapi.Update) string {
 	resp := fmt.Sprintf(
-		`Hey %s! 👋 Thanks for reaching out to Rubic — your universal DeFi aggregator for finding the best ratestraders. 
-To help you better, can you tell me what your request is about?
+		`Hey %s! 👋 Thanks for reaching out to Rubic — your universal DeFi aggregator for finding the best rates.
+
+To help you better, could you let me know what your request is about?
 
 Please choose one of the options below:
 `,

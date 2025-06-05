@@ -31,12 +31,12 @@ func (this *IssueDescriptionPage) RespText(update tgbotapi.Update) string {
 		return this.errResp
 	}
 
-	return `Can you please provide:
+	return `Please provide:
 - A short description of the issue
-- Tx Hash (if relevant)
-- Network / Tokens involved
+- Tx Hash (if applicable)
+- Network and tokens involved
 - Device & browser (if on web)
-- Screenshot (no more than 1 image per request)`
+- Screenshot (one image max per request)`
 }
 
 func (this *IssueDescriptionPage) Keyboard() tgbotapi.InlineKeyboardMarkup {

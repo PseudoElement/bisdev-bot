@@ -30,7 +30,7 @@ func (this *IntegrationPage) AllowedOnlyCommands() bool {
 }
 
 func (this *IntegrationPage) RespText(update tgbotapi.Update) string {
-	return `Here’s everything you need to get started:`
+	return `Here's everything you need to get started:`
 }
 
 func (this *IntegrationPage) Keyboard() tgbotapi.InlineKeyboardMarkup {

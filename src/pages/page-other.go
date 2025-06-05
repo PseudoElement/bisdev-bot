@@ -31,8 +31,9 @@ func (this *OtherPage) RespText(update tgbotapi.Update) string {
 		return this.errResp
 	}
 
-	return `No problem! Please describe your request in a few words — I’ll make sure it reaches the right person on our team.
-We aim to reply within 24 hours(no more than 1 image per request).`
+	return `No problem!
+Just describe your request briefly — I'll make sure it reaches the right person on our team.
+We aim to reply within 24 hours. (Please include no more than 1 image per request.)`
 }
 
 func (this *OtherPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
