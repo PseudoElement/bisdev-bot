@@ -48,7 +48,7 @@ func (this T_BlockedUsers) BlockUser(userName string) error {
 }
 
 func (this T_BlockedUsers) UnblockUser(userName string) error {
-	res, err := this.conn.Exec(`DELETE FROM blocked_users WHERE LOWER(user_name) = ($1);`, userName)
+	res, err := this.conn.Exec(`DELETE FROM blocked_users WHERE LOWER(user_name) = LOWER($1);`, userName)
 	if err != nil {
 		log.Println("[T_BlockedUsers_UnblockUser] Exec_err ==>", err)
 	}
