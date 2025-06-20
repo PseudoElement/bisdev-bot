@@ -13,9 +13,8 @@ type PartnershipPage struct {
 }
 
 func NewPartnershipPage(injector *injector.AppInjector) *PartnershipPage {
-	basePage := NewPage(injector)
 	p := &PartnershipPage{
-		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
+		AbstrUserInputPage: NewAbstrUserInputPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -48,5 +47,6 @@ func (this *PartnershipPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 }
 
 var _ models.IPage = (*PartnershipPage)(nil)
+var _ models.IUserPage = (*PartnershipPage)(nil)
 var _ models.IPageWithKeyboard = (*PartnershipPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*PartnershipPage)(nil)

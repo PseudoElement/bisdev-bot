@@ -16,6 +16,12 @@ type IPage interface {
 	AllowedOnlyMessages() bool
 }
 
+type IUserPage interface {
+	IPage
+
+	IsSelectablePage() bool
+}
+
 type IPageWithKeyboard interface {
 	IPage
 

@@ -10,17 +10,10 @@ type UserMsgFromClient struct {
 	CreatedAt string
 }
 
-type UserMsgWithFileID struct {
-	*UserMsgFromClient
-	FileID string
-}
-
-type MsgFromClientForLog struct {
-	UserName string
-	Initials string
-	Text     string
-	FileID   string
-	FileType string
+type UserOpenPage struct {
+	UserName   string
+	Initials   string
+	OpenedPage string
 }
 
 type MessagesReq struct {

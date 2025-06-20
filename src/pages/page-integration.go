@@ -9,12 +9,12 @@ import (
 )
 
 type IntegrationPage struct {
-	*Page
+	*AbstrUserPage
 }
 
 func NewIntegrationPage(injector *injector.AppInjector) *IntegrationPage {
 	p := &IntegrationPage{
-		Page: NewPage(injector),
+		AbstrUserPage: NewAbstrUserPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -37,4 +37,6 @@ func (this *IntegrationPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.IntegrationPageKeyboard
 }
 
+var _ models.IPage = (*IntegrationPage)(nil)
+var _ models.IUserPage = (*IntegrationPage)(nil)
 var _ models.IPageWithKeyboard = (*IntegrationPage)(nil)

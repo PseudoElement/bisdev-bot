@@ -8,17 +8,18 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/consts"
+	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/injector"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/models"
 	"github.com/pseudoelement/rubic-buisdev-tg-bot/src/utils"
 )
 
 type AbstrUserInputPage struct {
-	*Page
+	*AbstrUserPage
 }
 
-func NewAbstrUserInputPage(page *Page) *AbstrUserInputPage {
+func NewAbstrUserInputPage(injector *injector.AppInjector) *AbstrUserInputPage {
 	p := &AbstrUserInputPage{
-		Page: page,
+		AbstrUserPage: NewAbstrUserPage(injector),
 	}
 
 	return p

@@ -13,9 +13,8 @@ type IssueDescriptionPage struct {
 }
 
 func NewIssueDescriptionPage(injector *injector.AppInjector) *IssueDescriptionPage {
-	basePage := NewPage(injector)
 	p := &IssueDescriptionPage{
-		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
+		AbstrUserInputPage: NewAbstrUserInputPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -23,7 +22,7 @@ func NewIssueDescriptionPage(injector *injector.AppInjector) *IssueDescriptionPa
 }
 
 func (this *IssueDescriptionPage) Name() string {
-	return consts.DESCRIBE_ISSUE
+	return consts.BUG_ISSUE_PAGE
 }
 
 func (this *IssueDescriptionPage) RespText(update tgbotapi.Update) string {
@@ -44,5 +43,6 @@ func (this *IssueDescriptionPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 }
 
 var _ models.IPage = (*IssueDescriptionPage)(nil)
+var _ models.IUserPage = (*IssueDescriptionPage)(nil)
 var _ models.IPageWithKeyboard = (*IssueDescriptionPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*IssueDescriptionPage)(nil)

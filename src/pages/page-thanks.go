@@ -25,6 +25,10 @@ func (this *ThanksPage) Name() string {
 	return consts.THANKS_PAGE
 }
 
+func (this *ThanksPage) IsSelectablePage() bool {
+	return false
+}
+
 func (this *ThanksPage) AllowedOnlyCommands() bool {
 	return true
 }
@@ -37,4 +41,6 @@ func (this *ThanksPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.BackToStartKeyBoard
 }
 
+var _ models.IPage = (*ThanksPage)(nil)
+var _ models.IUserPage = (*ThanksPage)(nil)
 var _ models.IPageWithKeyboard = (*ThanksPage)(nil)

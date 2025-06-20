@@ -13,9 +13,8 @@ type SupportPage struct {
 }
 
 func NewSupportPage(injector *injector.AppInjector) *SupportPage {
-	basePage := NewPage(injector)
 	p := &SupportPage{
-		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
+		AbstrUserInputPage: NewAbstrUserInputPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -54,5 +53,7 @@ func (this *SupportPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.SupportPageKeyboard
 }
 
+var _ models.IPage = (*SupportPage)(nil)
+var _ models.IUserPage = (*SupportPage)(nil)
 var _ models.IPageWithKeyboard = (*SupportPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*SupportPage)(nil)

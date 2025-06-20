@@ -2,12 +2,13 @@ package consts
 
 // page names
 const (
-	INTEGRATION_PAGE = "INTEGRATION_PAGE"
-	OTHER_PAGE       = "OTHER_PAGE"
-	PARTNERSHIP_PAGE = "PARTNERSHIP_PAGE"
-	START_PAGE       = "START_PAGE"
-	SUPPORT_PAGE     = "SUPPORT_PAGE"
-	THANKS_PAGE      = "THANKS_PAGE"
+	INTEGRATION_PAGE = "Links page"
+	OTHER_PAGE       = "Something else page"
+	PARTNERSHIP_PAGE = "Partnership page"
+	START_PAGE       = "Start page"
+	SUPPORT_PAGE     = "Support page"
+	THANKS_PAGE      = "Thanks page"
+	BUG_ISSUE_PAGE   = "Describe bug or issue page"
 )
 
 // admin pages

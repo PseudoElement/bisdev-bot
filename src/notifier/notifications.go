@@ -17,3 +17,9 @@ type NotificationUnblockUser struct {
 	UnblockedUserName string
 	AdminUserName     string
 }
+
+type NotificationUserOpenPage struct {
+	FromUserName string
+	FromInitials string
+	OpenedPage   string
+}

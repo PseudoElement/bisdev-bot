@@ -13,9 +13,8 @@ type OtherPage struct {
 }
 
 func NewOtherPage(injector *injector.AppInjector) *OtherPage {
-	basePage := NewPage(injector)
 	p := &OtherPage{
-		AbstrUserInputPage: NewAbstrUserInputPage(basePage),
+		AbstrUserInputPage: NewAbstrUserInputPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -41,5 +40,6 @@ func (this *OtherPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 }
 
 var _ models.IPage = (*OtherPage)(nil)
+var _ models.IUserPage = (*OtherPage)(nil)
 var _ models.IPageWithKeyboard = (*OtherPage)(nil)
 var _ models.IPageWithActionOnDestroy = (*OtherPage)(nil)

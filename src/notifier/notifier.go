@@ -34,6 +34,16 @@ func (this *Notifier) NotifyAdminsOnNewMsg(msg models.UserMsgFromClient) {
 	this.notificationChan <- notification
 }
 
+func (this *Notifier) NotifyAdminsOnUserOpenPage(msg models.UserOpenPage) {
+	notification := NotificationUserOpenPage{
+		FromUserName: msg.UserName,
+		OpenedPage:   msg.OpenedPage,
+		FromInitials: msg.Initials,
+	}
+	log.Printf("[Notifier_NotifyAdminsOnUserOpenPage] userCommand_notification ==> %+v\n", notification)
+	this.notificationChan <- notification
+}
+
 func (this *Notifier) NotifyAdminsOnBlockedUsers(userName string, adminName string) {
 	notification := NotificationBlockUser{BlockedUserName: userName, AdminUserName: adminName}
 	log.Printf("[Notifier_NotifyAdminsOnBlockedUsers] block_notification ==> %+v\n", notification)

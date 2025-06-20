@@ -11,12 +11,12 @@ import (
 )
 
 type StartPage struct {
-	*Page
+	*AbstrUserPage
 }
 
 func NewStartPage(injector *injector.AppInjector) *StartPage {
 	p := &StartPage{
-		Page: NewPage(injector),
+		AbstrUserPage: NewAbstrUserPage(injector),
 	}
 	p.setCurrenPage(p)
 
@@ -49,4 +49,5 @@ func (this *StartPage) Keyboard() tgbotapi.InlineKeyboardMarkup {
 	return keyboards.StartPageKeyboard
 }
 
+var _ models.IUserPage = (*StartPage)(nil)
 var _ models.IPageWithKeyboard = (*StartPage)(nil)

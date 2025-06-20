@@ -127,6 +127,9 @@ func (this *BuisdevBot) ListenNotifier() {
 		case notifier.NotificationNewMessage:
 			v := note.(notifier.NotificationNewMessage)
 			this.sendNewMessageToAdmins(v)
+		case notifier.NotificationUserOpenPage:
+			v := note.(notifier.NotificationUserOpenPage)
+			this.sendUserOpenPageToAdmins(v)
 		default:
 			log.Println("!!!NOTE: unknown note type %v", note)
 		}
@@ -147,6 +150,13 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 			this.pages[userId] = pages.NewAdminStartPage(this.injector)
 		} else {
 			this.pages[userId] = pages.NewStartPage(this.injector)
+
+			msg := models.UserOpenPage{
+				UserName:   update.Message.From.UserName,
+				Initials:   fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName),
+				OpenedPage: this.pages[userId].Name(),
+			}
+			this.injector.Notifier.NotifyAdminsOnUserOpenPage(msg)
 		}
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
@@ -204,26 +214,37 @@ func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 
 func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 	userId := update.CallbackQuery.From.ID
+	page := this.pages[userId]
+	pageWithActionOnDestr, withActionOnDestr := page.(models.IPageWithActionOnDestroy)
 
 	if this.injector.Store.IsAdminById(userId) {
 		this.injector.Store.SetAdminData(update)
 	}
 
-	if this.pages[userId].AllowedOnlyMessages() && update.CallbackData() != consts.BACK_TO_START {
+	if page.AllowedOnlyMessages() && update.CallbackData() != consts.BACK_TO_START {
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Commands are not allowed for response here.")
 
 		go this.bot.Send(msg)
 	} else {
-		pageWithActionOnDestr, ok := this.pages[userId].(models.IPageWithActionOnDestroy)
 		// skip onDestroy callback if want to get back to start
-		if ok && update.CallbackData() != consts.BACK_TO_START {
+		if withActionOnDestr && update.CallbackData() != consts.BACK_TO_START {
 			pageWithActionOnDestr.ActionOnDestroy(update)
 		}
 
-		nextPage := this.pages[userId].NextPage(update, this.injector.Store.IsAdminById(userId))
-		nextPageWithActionOnInit, ok := nextPage.(models.IPageWithActionOnInit)
-		if ok {
+		nextPage := page.NextPage(update, this.injector.Store.IsAdminById(userId))
+		nextUserPage, isUserPage := nextPage.(models.IUserPage)
+		nextPageWithActionOnInit, withActionOnInit := nextPage.(models.IPageWithActionOnInit)
+		if withActionOnInit {
 			nextPageWithActionOnInit.ActionOnInit(update)
+		}
+
+		if !this.injector.Store.IsAdminById(userId) && isUserPage && nextUserPage.IsSelectablePage() {
+			msg := models.UserOpenPage{
+				UserName:   update.CallbackQuery.From.UserName,
+				Initials:   fmt.Sprintf("%s %s", update.CallbackQuery.From.FirstName, update.CallbackQuery.From.LastName),
+				OpenedPage: nextUserPage.Name(),
+			}
+			this.injector.Notifier.NotifyAdminsOnUserOpenPage(msg)
 		}
 
 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, nextPage.RespText(update))
@@ -312,6 +333,16 @@ func (this *BuisdevBot) sendUnblockInfoToAdmins(note notifier.NotificationUnbloc
 	for _, admin := range this.injector.Store.GetAdmins() {
 		go func(adm models.Admin) {
 			text := fmt.Sprintf("💫 %s unblocked user %s.", note.AdminUserName, note.UnblockedUserName)
+			msg := tgbotapi.NewMessage(adm.ChatId, text)
+			this.bot.Send(msg)
+		}(admin)
+	}
+}
+
+func (this *BuisdevBot) sendUserOpenPageToAdmins(note notifier.NotificationUserOpenPage) {
+	for _, admin := range this.injector.Store.GetAdmins() {
+		go func(adm models.Admin) {
+			text := fmt.Sprintf("User %s(@%s) opened page \"%s\".", note.FromInitials, note.FromUserName, note.OpenedPage)
 			msg := tgbotapi.NewMessage(adm.ChatId, text)
 			this.bot.Send(msg)
 		}(admin)
