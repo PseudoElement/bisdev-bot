@@ -309,10 +309,15 @@ func (this *BuisdevBot) sendNewMessageToAdmins(note notifier.NotificationNewMess
 
 	for _, admin := range this.injector.Store.GetAdmins() {
 		go func(adm models.Admin) {
-			msg := tgbotapi.NewMessage(adm.ChatId, text)
+			adminChatId := adm.ChatId
+			if adm.NotSetChatID() {
+				// load chatId of admin from db and
+				// set loaded chatId in adminChatId
+			}
+			msg := tgbotapi.NewMessage(adminChatId, text)
 			this.bot.Send(msg)
 			if file != nil {
-				mg := tgbotapi.NewMediaGroup(adm.ChatId, []any{file})
+				mg := tgbotapi.NewMediaGroup(adminChatId, []any{file})
 				this.bot.SendMediaGroup(mg)
 			}
 		}(admin)

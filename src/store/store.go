@@ -91,6 +91,7 @@ func (this *Store) IsAdminByName(userName string) bool {
 	return false
 }
 
+// set admin data in map, if it doesn't exist
 func (this *Store) SetAdminData(update tgbotapi.Update) {
 	var userId int64
 	var userName string
@@ -104,6 +105,12 @@ func (this *Store) SetAdminData(update tgbotapi.Update) {
 		userId = update.CallbackQuery.From.ID
 		userName = update.CallbackQuery.From.UserName
 		chatId = update.CallbackQuery.Message.Chat.ID
+	}
+
+	admin := this.admins[userId]
+	if admin.ChatId == 0 {
+		// fetch admin data from db
+		// set full admin data in this.admins
 	}
 
 	this.admins[userId] = models.Admin{

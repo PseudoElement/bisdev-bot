@@ -27,3 +27,7 @@ type Admin struct {
 	UserId             int64
 	IsListenToNotifier bool
 }
+
+func (this *Admin) NotSetChatID() bool {
+	return this.ChatId == 0
+}
