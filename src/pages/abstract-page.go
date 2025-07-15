@@ -46,15 +46,19 @@ func (this *Page) CurrPage() models.IPage {
 
 func (this *Page) UserName(update tgbotapi.Update) string {
 	if update.Message != nil && update.Message.From.UserName != "" {
-		return update.Message.From.UserName
+		if update.Message.From.UserName != "" {
+			return update.Message.From.UserName
+		} else {
+			return strconv.Itoa(int(update.Message.From.ID))
+		}
 	}
 	if update.CallbackQuery != nil && update.CallbackQuery.From.UserName != "" {
 		return update.CallbackQuery.From.UserName
 	}
 
-	log.Printf("[Page_UserName()] unexpected empty UserName ==> %+v", update.Message)
+	log.Printf("[Page_UserName()] unexpected empty UserName ==> %+v", update)
 
-	return strconv.Itoa(int(update.Message.From.ID))
+	return "UnknownUser"
 }
 
 func (this *Page) UserID(update tgbotapi.Update) int64 {
