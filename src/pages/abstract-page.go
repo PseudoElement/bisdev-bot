@@ -127,7 +127,7 @@ func (this *Page) NextPage(update tgbotapi.Update, isAdmin bool) models.IPage {
 			return NewAdminSelectOldOrNewMsgsPage(this.injector)
 		case consts.DELETE_MESSAGES:
 			return NewAdminDeleteMsgCountPage(this.injector)
-		case ttm.Mins_10, ttm.Mins_30, ttm.Hour_1, ttm.Hours_3, ttm.Hours_6, ttm.Hours_12, ttm.Day_1, ttm.Days_3, ttm.Week_1, ttm.Weeks_2, ttm.Month_1, ttm.Months_3:
+		case ttm.Mins_10, ttm.Mins_30, ttm.Hour_1, ttm.Hours_3, ttm.Hours_6, ttm.Hours_12, ttm.Day_1, ttm.Days_3, ttm.Week_1, ttm.Weeks_2, ttm.Month_1, ttm.Months_3, ttm.AllTime:
 			return NewAdminCountOfReceivedMsgsPage(this.injector)
 		case consts.SHOW_ALL_MESSAGES, consts.SHOW_NEW_MESSAGES, consts.SELECT_NUMBER_OF_MESSAGES:
 			return NewAdminSelectMsgCountPage(this.injector)

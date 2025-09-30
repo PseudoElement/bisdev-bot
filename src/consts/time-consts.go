@@ -13,6 +13,7 @@ type TimeRangeToMin struct {
 	Weeks_2  string
 	Month_1  string
 	Months_3 string
+	AllTime  string
 }
 
 var TIME_TO_MIN = TimeRangeToMin{
@@ -28,4 +29,6 @@ var TIME_TO_MIN = TimeRangeToMin{
 	Weeks_2:  "20160",
 	Month_1:  "43200",
 	Months_3: "129600",
+	// 100 years
+	AllTime: "52560000",
 }

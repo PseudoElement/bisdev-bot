@@ -88,11 +88,12 @@ func (this *BuisdevBot) ListenUpdates() {
 		}
 
 		if update.Message != nil {
-			fmt.Printf("[%s][%s %s] userId - %v, text - %s,  caption - %s, command - %s, photos_count - %d.\n",
+			fmt.Printf("[%s][%s %s] userId - %v, chatId - %v, text - %s, caption - %s, command - %s, photos_count - %d.\n",
 				update.Message.From.UserName,
 				update.Message.From.FirstName,
 				update.Message.From.LastName,
 				update.Message.From.ID,
+				update.Message.Chat.ID,
 				update.Message.Text,
 				update.Message.Caption,
 				update.Message.Command(),
@@ -101,11 +102,16 @@ func (this *BuisdevBot) ListenUpdates() {
 
 			this.handleMessageRequest(update)
 		} else if update.CallbackQuery != nil && update.CallbackData() != this.lastCommands[userId] {
-			fmt.Printf("[%s][%s %s] userId - %v, Data - %s\n",
+			var chatId int64
+			if update.CallbackQuery.Message != nil {
+				chatId = update.CallbackQuery.Message.Chat.ID
+			}
+			fmt.Printf("[%s][%s %s] userId - %v, chatId - %v, Data - %s\n",
 				update.CallbackQuery.From.UserName,
 				update.CallbackQuery.From.FirstName,
 				update.CallbackQuery.From.LastName,
 				update.CallbackQuery.From.ID,
+				chatId,
 				update.CallbackData(),
 			)
 
@@ -139,7 +145,7 @@ func (this *BuisdevBot) ListenNotifier() {
 func (this *BuisdevBot) handleMessageRequest(update tgbotapi.Update) {
 	userId := update.Message.From.ID
 
-	if this.injector.Store.IsAdminById(userId) {
+	if this.injector.Store.IsAdminById(userId) && !this.injector.Store.IsAdminSetInStore(userId) {
 		this.injector.Store.SetAdminData(update)
 	}
 
@@ -217,7 +223,7 @@ func (this *BuisdevBot) handleCallbackRequest(update tgbotapi.Update) {
 	page := this.pages[userId]
 	pageWithActionOnDestr, withActionOnDestr := page.(models.IPageWithActionOnDestroy)
 
-	if this.injector.Store.IsAdminById(userId) {
+	if this.injector.Store.IsAdminById(userId) && !this.injector.Store.IsAdminSetInStore(userId) {
 		this.injector.Store.SetAdminData(update)
 	}
 

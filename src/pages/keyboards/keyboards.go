@@ -197,6 +197,12 @@ var (
 				consts.TIME_TO_MIN.Months_3,
 			),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"All time",
+				consts.TIME_TO_MIN.AllTime,
+			),
+		),
 		backToStartButton,
 	)
 

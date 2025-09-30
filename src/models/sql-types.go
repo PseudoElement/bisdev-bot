@@ -23,3 +23,9 @@ type Db_BlockedUser struct {
 	UserName  string
 	CreatedAt string
 }
+
+type DB_Admin struct {
+	UserId   int64
+	UserName string
+	ChatId   int64
+}

@@ -12,6 +12,7 @@ type Tables struct {
 	Messages      ITableMessages
 	MessagesCount ITableMessagesCount
 	BlockedUsers  ITableBlockedUsers
+	Admins        ITableAdmins
 	// PinnedFiles   ITablePinnedFiles
 }
 
@@ -51,6 +52,14 @@ type ITableBlockedUsers interface {
 	UnblockUser(userName string) error
 
 	GetBlockedUsers() ([]Db_BlockedUser, error)
+}
+
+type ITableAdmins interface {
+	CreateTable() error
+
+	SaveAdmin(adminInfo DB_Admin) error
+
+	GetAdmins() ([]DB_Admin, error)
 }
 
 // @IMPROVEMENT add opportunity to store many messages

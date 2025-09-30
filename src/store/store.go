@@ -30,7 +30,7 @@ func NewStore(db *db.SqliteDB) *Store {
 	return s
 }
 
-// sets all admins UserIDs
+// sets all admins UserIDs and data from db if exists
 func (this *Store) initAdmins() {
 	adminsString, ok := os.LookupEnv("ADMINS")
 	if !ok {
@@ -41,6 +41,23 @@ func (this *Store) initAdmins() {
 	for _, admin := range admins {
 		userId, _ := strconv.Atoi(admin)
 		this.admins[int64(userId)] = models.Admin{UserId: int64(userId)}
+	}
+
+	dbAdmins, err := this.db.Tables().Admins.GetAdmins()
+	if err != nil {
+		log.Printf("[Store_initAdmins] GetAdmins err ==>%v.\n", err)
+		return
+	}
+
+	if len(dbAdmins) > 0 {
+		for _, dbAdmin := range dbAdmins {
+			this.admins[dbAdmin.UserId] = models.Admin{
+				ChatId:             dbAdmin.ChatId,
+				UserName:           dbAdmin.UserName,
+				UserId:             dbAdmin.UserId,
+				IsListenToNotifier: true,
+			}
+		}
 	}
 }
 
@@ -91,7 +108,17 @@ func (this *Store) IsAdminByName(userName string) bool {
 	return false
 }
 
-// set admin data in map, if it doesn't exist
+// chatId is 0 if admin is not added in db
+func (this *Store) IsAdminSetInStore(userId int64) bool {
+	adminInfo, ok := this.admins[userId]
+	if !ok {
+		return false
+	}
+
+	return adminInfo.ChatId != 0
+}
+
+// set admin data in map and db, if it doesn't exist in map and not added in admins table in db
 func (this *Store) SetAdminData(update tgbotapi.Update) {
 	var userId int64
 	var userName string
@@ -104,20 +131,30 @@ func (this *Store) SetAdminData(update tgbotapi.Update) {
 	if update.CallbackQuery != nil {
 		userId = update.CallbackQuery.From.ID
 		userName = update.CallbackQuery.From.UserName
-		chatId = update.CallbackQuery.Message.Chat.ID
+		if update.CallbackQuery.Message != nil {
+			chatId = update.CallbackQuery.Message.Chat.ID
+		}
 	}
 
-	admin := this.admins[userId]
-	if admin.ChatId == 0 {
-		// fetch admin data from db
-		// set full admin data in this.admins
-	}
+	// possibly can be 0 if update.CallbackQuery.Message == nil
+	if chatId != 0 {
+		this.admins[userId] = models.Admin{
+			ChatId:             chatId,
+			UserId:             userId,
+			UserName:           userName,
+			IsListenToNotifier: true,
+		}
 
-	this.admins[userId] = models.Admin{
-		ChatId:             chatId,
-		UserId:             chatId,
-		UserName:           userName,
-		IsListenToNotifier: true,
+		go func() {
+			err := this.db.Tables().Admins.SaveAdmin(models.DB_Admin{
+				UserId:   userId,
+				UserName: userName,
+				ChatId:   chatId,
+			})
+			if err != nil {
+				log.Printf("[Store_SetAdminData] SaveAdmin err ==>%v.\n", err)
+			}
+		}()
 	}
 }
 

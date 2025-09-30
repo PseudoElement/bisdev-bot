@@ -35,7 +35,6 @@ func (this *AdminSelectMsgCountPage) RespText(update tgbotapi.Update) string {
 	return "Input number of latest messages, you want to see (max number per request is 20):"
 }
 
-// ? add "ALL" messages
 func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 	if update.Message == nil {
 		return
@@ -48,10 +47,6 @@ func (this *AdminSelectMsgCountPage) ActionOnDestroy(update tgbotapi.Update) {
 	}
 	if count <= 0 {
 		this.setErrorResp("I think it's a joke. Try to use bigger number.")
-		return
-	}
-	if count > 20 {
-		this.setErrorResp("Must be less or equal to 20.")
 		return
 	}
 

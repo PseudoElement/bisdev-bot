@@ -5,6 +5,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	t_admins "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries/table-admins"
 	t_blocked_users "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries/table-blocked-users"
 	t_messages "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries/table-messages"
 	t_msgs_count "github.com/pseudoelement/rubic-buisdev-tg-bot/src/db/queries/table-messages-count"
@@ -29,6 +30,7 @@ func NewSqliteDB() *SqliteDB {
 		Messages:      t_messages.NewTableMessages(conn),
 		MessagesCount: t_msgs_count.NewTableMessagesCount(conn),
 		BlockedUsers:  t_blocked_users.NewTableBlockedUsers(conn),
+		Admins:        t_admins.NewTableAdmins(conn),
 	}
 
 	err = db.tables.Messages.CreateTable()
@@ -42,6 +44,10 @@ func NewSqliteDB() *SqliteDB {
 	err = db.tables.BlockedUsers.CreateTable()
 	if err != nil {
 		panic("[NewSqliteDB] BlockedUsers_CreateTable err ==>" + err.Error())
+	}
+	err = db.tables.Admins.CreateTable()
+	if err != nil {
+		panic("[NewSqliteDB] Admins_CreateTable err ==>" + err.Error())
 	}
 
 	log.Println("Sqlite successfully connected.")
